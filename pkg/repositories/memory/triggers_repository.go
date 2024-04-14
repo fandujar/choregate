@@ -57,8 +57,8 @@ func (r *TriggerRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-// NewTriggerRepository creates a new in-memory trigger repository.
-func NewTriggerRepository() *TriggerRepository {
+// NewInMemoryTriggerRepository creates a new in-memory trigger repository.
+func NewInMemoryTriggerRepository() *TriggerRepository {
 	return &TriggerRepository{
 		triggers: make(map[uuid.UUID]*entities.Trigger),
 	}
