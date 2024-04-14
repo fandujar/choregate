@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"github.com/fandujar/choregate/pkg/utils"
 	"github.com/google/uuid"
 )
 
@@ -19,7 +20,7 @@ func NewTask(config *TaskConfig) (*Task, error) {
 	var err error
 
 	if config.ID == uuid.Nil {
-		config.ID, err = generateID()
+		config.ID, err = utils.GenerateID()
 		if err != nil {
 			return nil, err
 		}

@@ -1,8 +1,8 @@
-package entities
+package utils
 
 import "github.com/google/uuid"
 
-func generateID() (uuid.UUID, error) {
+func GenerateID() (uuid.UUID, error) {
 	u, err := uuid.NewV7()
 	if err != nil {
 		return uuid.UUID{}, err

@@ -1,6 +1,9 @@
 package entities
 
-import "github.com/google/uuid"
+import (
+	"github.com/fandujar/choregate/pkg/utils"
+	"github.com/google/uuid"
+)
 
 // TriggerConfig represents the configuration of a trigger.
 type TriggerConfig struct {
@@ -30,7 +33,7 @@ func NewTrigger(config *TriggerConfig) (*Trigger, error) {
 	var err error
 
 	if config.ID == uuid.Nil {
-		config.ID, err = generateID()
+		config.ID, err = utils.GenerateID()
 		if err != nil {
 			return nil, err
 		}
