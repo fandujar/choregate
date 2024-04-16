@@ -2,6 +2,9 @@ package main
 
 import (
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/fandujar/choregate/pkg/repositories"
@@ -48,9 +51,37 @@ func main() {
 
 	// Create services
 	taskService := services.NewTaskService(taskRepository)
+	triggerService := services.NewTriggerService(triggerRepository)
 
 	// Register the routes
 	transport.RegisterTasksRoutes(r, *taskService)
+	transport.RegisterTriggersRoutes(r, *triggerService)
 
-	http.ListenAndServe(":8080", r)
+	// Prepare to handle signals
+	// Start the HTTP server
+	shutdown := make(chan bool, 1)
+	signalHandler := make(chan os.Signal, 1)
+	signal.Notify(signalHandler, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		s := <-signalHandler
+		log.Info().Msgf("received signal: %v", s)
+		shutdown <- true
+	}()
+
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: r,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Error().Err(err).Msg("server error")
+			signalHandler <- syscall.SIGTERM
+		}
+	}()
+
+	// Wait for a signal
+	<-shutdown
+	log.Info().Msg("shutting down server")
 }
