@@ -22,7 +22,9 @@ type TaskRepository interface {
 
 type TaskRunRepository interface {
 	// Create creates a new task run.
-	Create(ctx context.Context, taskRun string) error
-	// Run runs a task.
-	Run(ctx context.Context, task *entities.Task) error
+	Create(ctx context.Context, taskRun *entities.TaskRun) error
+	// Update updates a task run.
+	Update(ctx context.Context, taskRun *entities.TaskRun) error
+	// Delete deletes a task run by ID.
+	Delete(ctx context.Context, id uuid.UUID) error
 }
