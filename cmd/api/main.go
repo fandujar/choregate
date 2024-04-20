@@ -53,7 +53,10 @@ func main() {
 	log.Debug().Msgf("type of teamRepository: %T", teamRepository)
 
 	// Initialize tekton client
-	tektonClient := providers.NewTektonClient()
+	tektonClient, err := providers.NewTektonClient()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create Tekton client")
+	}
 
 	// Create services
 	taskService := services.NewTaskService(taskRepository, taskRunRepository, tektonClient)
