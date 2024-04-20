@@ -3,12 +3,15 @@ package entities
 import (
 	"github.com/fandujar/choregate/pkg/utils"
 	"github.com/google/uuid"
+	tekton "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
 )
 
 type TaskRunConfig struct {
-	ID     uuid.UUID     `json:"id"`
-	TaskID uuid.UUID     `json:"task_id"`
-	Status TaskRunStatus `json:"status"`
+	ID        uuid.UUID     `json:"id"`
+	TaskID    uuid.UUID     `json:"task_id"`
+	Status    TaskRunStatus `json:"status"`
+	Namespace string        `json:"namespace"`
+	Steps     []tekton.Step `json:"steps"`
 }
 
 type TaskRun struct {

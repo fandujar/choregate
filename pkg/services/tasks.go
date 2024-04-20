@@ -58,9 +58,14 @@ func (s *TaskService) Run(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	taskRun, err := entities.NewTaskRun(&entities.TaskRunConfig{
-		TaskID: task.ID,
-	})
+	taskRun, err := entities.NewTaskRun(
+		&entities.TaskRunConfig{
+			TaskID:    task.ID,
+			Status:    entities.TaskRunPending{},
+			Namespace: task.Namespace,
+			Steps:     task.Steps,
+		},
+	)
 
 	if err != nil {
 		return err

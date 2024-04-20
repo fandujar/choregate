@@ -63,28 +63,18 @@ func (c *TektonClientImpl) GetTaskRun(ctx context.Context, id uuid.UUID) (*entit
 
 func (c *TektonClientImpl) RunTask(ctx context.Context, task *entities.TaskRun) error {
 
-	d, err := c.kubeClient.AppsV1().Deployments("default").List(ctx,
-		metav1.ListOptions{},
-	)
-	if err != nil {
-		return err
-	}
-	log.Info().Msgf("deployments: %v", d)
-
 	t := &tekton.TaskRun{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "task-run-",
+			GenerateName: fmt.Sprintf("%s-", task.ID.String()),
 		},
 		Spec: tekton.TaskRunSpec{
 			TaskSpec: &tekton.TaskSpec{
-				Steps: []tekton.Step{
-					{},
-				},
+				Steps: task.Steps,
 			},
 		},
 	}
 
-	_, err = c.tektonClient.TektonV1().TaskRuns("default").Create(ctx, t, metav1.CreateOptions{})
+	_, err := c.tektonClient.TektonV1().TaskRuns(task.Namespace).Create(ctx, t, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}
