@@ -7,6 +7,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/fandujar/choregate/pkg/providers"
 	"github.com/fandujar/choregate/pkg/repositories"
 	"github.com/fandujar/choregate/pkg/repositories/memory"
 	"github.com/fandujar/choregate/pkg/services"
@@ -31,6 +32,7 @@ func main() {
 	// implemented types: memory
 
 	var taskRepository repositories.TaskRepository
+	var taskRunRepository repositories.TaskRunRepository
 	var userRepository repositories.UserRepository
 	var triggerRepository repositories.TriggerRepository
 	var teamRepository repositories.TeamRepository
@@ -38,6 +40,7 @@ func main() {
 	if true {
 		// Create a memory repository
 		taskRepository = memory.NewInMemoryTaskRepository()
+		taskRunRepository = memory.NewInMemoryTaskRunRepository()
 		userRepository = memory.NewInMemoryUserRepository()
 		triggerRepository = memory.NewInMemoryTriggerRepository()
 		teamRepository = memory.NewInMemoryTeamRepository()
@@ -49,8 +52,11 @@ func main() {
 	log.Debug().Msgf("type of triggerRepository: %T", triggerRepository)
 	log.Debug().Msgf("type of teamRepository: %T", teamRepository)
 
+	// Initialize tekton client
+	tektonClient := providers.NewTektonClient()
+
 	// Create services
-	taskService := services.NewTaskService(taskRepository)
+	taskService := services.NewTaskService(taskRepository, taskRunRepository, tektonClient)
 	triggerService := services.NewTriggerService(triggerRepository)
 
 	// Register the routes

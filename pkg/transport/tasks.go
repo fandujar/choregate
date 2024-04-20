@@ -87,11 +87,31 @@ func (h *TaskHandler) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusCreated)
 }
 
+// RunTaskHandler handles the POST /tasks/{id}/run endpoint.
+func (h *TaskHandler) RunTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	taskID := uuid.MustParse(id)
+	if taskID == uuid.Nil {
+		http.Error(w, "invalid task ID", http.StatusBadRequest)
+		return
+	}
+
+	err := h.service.Run(r.Context(), taskID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}
+
 // RegisterTasksRoutes registers the routes for the tasks API.
 func RegisterTasksRoutes(r chi.Router, service services.TaskService) {
 	handler := NewTaskHandler(service)
 
 	r.Get("/tasks", handler.GetTasksHandler)
 	r.Get("/tasks/{id}", handler.GetTaskHandler)
+	r.Post("/tasks/{id}/run", handler.RunTaskHandler)
 	r.Post("/tasks", handler.CreateTaskHandler)
 }

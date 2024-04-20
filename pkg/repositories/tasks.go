@@ -19,12 +19,3 @@ type TaskRepository interface {
 	// Delete deletes a task by ID.
 	Delete(ctx context.Context, id uuid.UUID) error
 }
-
-type TaskRunRepository interface {
-	// Create creates a new task run.
-	Create(ctx context.Context, taskRun *entities.TaskRun) error
-	// Update updates a task run.
-	Update(ctx context.Context, taskRun *entities.TaskRun) error
-	// Delete deletes a task run by ID.
-	Delete(ctx context.Context, id uuid.UUID) error
-}
