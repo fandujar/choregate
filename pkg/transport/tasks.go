@@ -8,6 +8,8 @@ import (
 	"github.com/fandujar/choregate/pkg/services"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
+	tekton "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
 )
 
 // Task represents a task in the API.
@@ -106,6 +108,40 @@ func (h *TaskHandler) RunTaskHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// UpdateStepsHandler handles the PUT /tasks/{id}/steps endpoint.
+func (h *TaskHandler) UpdateStepsHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	taskID := uuid.MustParse(id)
+	if taskID == uuid.Nil {
+		http.Error(w, "invalid task ID", http.StatusBadRequest)
+		return
+	}
+
+	var steps []tekton.Step
+	err := json.NewDecoder(r.Body).Decode(&steps)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	task, err := h.service.FindByID(r.Context(), taskID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	task.Steps = steps
+	log.Debug().Msgf("updating task %s with steps %v", taskID, steps)
+	err = h.service.Update(r.Context(), task)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}
+
 // RegisterTasksRoutes registers the routes for the tasks API.
 func RegisterTasksRoutes(r chi.Router, service services.TaskService) {
 	handler := NewTaskHandler(service)
@@ -113,5 +149,6 @@ func RegisterTasksRoutes(r chi.Router, service services.TaskService) {
 	r.Get("/tasks", handler.GetTasksHandler)
 	r.Get("/tasks/{id}", handler.GetTaskHandler)
 	r.Post("/tasks/{id}/run", handler.RunTaskHandler)
+	r.Put("/tasks/{id}/steps", handler.UpdateStepsHandler)
 	r.Post("/tasks", handler.CreateTaskHandler)
 }
