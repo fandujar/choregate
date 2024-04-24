@@ -7,11 +7,9 @@ import (
 )
 
 type TaskRunConfig struct {
-	ID        uuid.UUID     `json:"id"`
-	TaskID    uuid.UUID     `json:"task_id"`
-	Status    TaskRunStatus `json:"status"`
-	Namespace string        `json:"namespace"`
-	Steps     []tekton.Step `json:"steps"`
+	ID     uuid.UUID
+	TaskID uuid.UUID
+	*tekton.TaskRun
 }
 
 type TaskRun struct {
@@ -27,6 +25,13 @@ func NewTaskRun(config *TaskRunConfig) (*TaskRun, error) {
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	if config.TaskRun.Labels == nil {
+		config.TaskRun.Labels = make(map[string]string, 2)
+		// Add the task ID and taskRun ID to the labels.
+		config.TaskRun.Labels["choregate.fandujar.dev/task-id"] = config.TaskID.String()
+		config.TaskRun.Labels["choregate.fandujar.dev/taskrun-id"] = config.ID.String()
 	}
 
 	return &TaskRun{

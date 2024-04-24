@@ -6,22 +6,21 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
-	tekton "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
+	tektonAPI "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
 	tektonVersioned "github.com/tektoncd/pipeline/pkg/client/clientset/versioned"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	cliconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
-
-	"github.com/fandujar/choregate/pkg/entities"
 )
 
 // TektonClient is a client for interacting with Tekton.
 type TektonClient interface {
 	// GetTaskRun returns a task run by name.
-	GetTaskRun(ctx context.Context, id uuid.UUID) (*entities.TaskRun, error)
+	GetTaskRun(ctx context.Context, namespace string, id uuid.UUID) (*tektonAPI.TaskRun, error)
 	// RunTask runs a task.
-	RunTask(ctx context.Context, task *entities.TaskRun) error
+	RunTask(ctx context.Context, taskRun *tektonAPI.TaskRun) error
 }
 
 type TektonClientImpl struct {
@@ -57,24 +56,40 @@ func NewTektonClient() (TektonClient, error) {
 	}, nil
 }
 
-func (c *TektonClientImpl) GetTaskRun(ctx context.Context, id uuid.UUID) (*entities.TaskRun, error) {
-	return nil, fmt.Errorf("not implemented")
+// GetTaskRun returns a task run by ID.
+func (c *TektonClientImpl) GetTaskRun(ctx context.Context, namespace string, id uuid.UUID) (*tektonAPI.TaskRun, error) {
+	// Find the task run by ID in the labels.
+	taskRunList, err := c.tektonClient.TektonV1().TaskRuns(namespace).List(ctx, metav1.ListOptions{
+		LabelSelector: "choregate.fandujar.dev/taskrun-id=" + id.String(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	for _, taskRun := range taskRunList.Items {
+		return &taskRun, nil
+	}
+	return nil, fmt.Errorf("task run not found")
 }
 
-func (c *TektonClientImpl) RunTask(ctx context.Context, task *entities.TaskRun) error {
-
-	t := &tekton.TaskRun{
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: fmt.Sprintf("%s-", task.ID.String()),
-		},
-		Spec: tekton.TaskRunSpec{
-			TaskSpec: &tekton.TaskSpec{
-				Steps: task.Steps,
-			},
-		},
+// Logs returns the logs of a task run.
+func (c *TektonClientImpl) Logs(ctx context.Context, taskRun *tektonAPI.TaskRun) (string, error) {
+	// Get the logs of the task run.
+	raw, err := c.kubeClient.CoreV1().Pods(taskRun.Namespace).GetLogs(taskRun.Status.PodName, &v1.PodLogOptions{}).Do(ctx).Raw()
+	if err != nil {
+		return "", err
 	}
 
-	_, err := c.tektonClient.TektonV1().TaskRuns(task.Namespace).Create(ctx, t, metav1.CreateOptions{})
+	if raw == nil {
+		return "", fmt.Errorf("failed to get logs")
+	}
+
+	return string(raw), nil
+}
+
+func (c *TektonClientImpl) RunTask(ctx context.Context, taskRun *tektonAPI.TaskRun) error {
+	namespace := taskRun.Namespace
+
+	_, err := c.tektonClient.TektonV1().TaskRuns(namespace).Create(ctx, taskRun, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}

@@ -2,12 +2,15 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/fandujar/choregate/pkg/entities"
 	"github.com/fandujar/choregate/pkg/providers"
 	"github.com/fandujar/choregate/pkg/repositories"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	tekton "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // TaskService is a service that manages tasks.
@@ -60,13 +63,20 @@ func (s *TaskService) Run(ctx context.Context, id uuid.UUID) error {
 
 	taskRun, err := entities.NewTaskRun(
 		&entities.TaskRunConfig{
-			TaskID:    task.ID,
-			Status:    entities.TaskRunPending{},
-			Namespace: task.Namespace,
-			Steps:     task.Steps,
+			TaskID: task.ID,
+			TaskRun: &tekton.TaskRun{
+				ObjectMeta: metav1.ObjectMeta{
+					GenerateName: fmt.Sprintf("%s-", task.ID.String()),
+					Namespace:    task.Namespace,
+				},
+				Spec: tekton.TaskRunSpec{
+					TaskSpec: &tekton.TaskSpec{
+						Steps: task.Steps,
+					},
+				},
+			},
 		},
 	)
-
 	if err != nil {
 		return err
 	}
@@ -75,8 +85,7 @@ func (s *TaskService) Run(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	if err := s.tektonClient.RunTask(ctx, taskRun); err != nil {
-		taskRun.Status = entities.TaskRunFailed{}
+	if err := s.tektonClient.RunTask(ctx, taskRun.TaskRun); err != nil {
 		log.Error().Err(err).Msg("failed to run task")
 		if err := s.taskRunRepo.Update(ctx, taskRun); err != nil {
 			return err
