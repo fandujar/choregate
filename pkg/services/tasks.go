@@ -95,3 +95,8 @@ func (s *TaskService) Run(ctx context.Context, id uuid.UUID) error {
 
 	return nil
 }
+
+// FindTaskRuns returns all task runs for a task.
+func (s *TaskService) FindTaskRuns(ctx context.Context, taskID uuid.UUID) ([]*entities.TaskRun, error) {
+	return s.taskRunRepo.FindByTaskID(ctx, taskID)
+}

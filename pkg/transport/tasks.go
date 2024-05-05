@@ -142,13 +142,59 @@ func (h *TaskHandler) UpdateStepsHandler(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusCreated)
 }
 
+// GetTaskRunsHandler handles the GET /tasks/{id}/runs endpoint.
+func (h *TaskHandler) GetTaskRunsHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	taskID := uuid.MustParse(id)
+	if taskID == uuid.Nil {
+		http.Error(w, "invalid task ID", http.StatusBadRequest)
+		return
+	}
+
+	taskRuns, err := h.service.FindTaskRuns(r.Context(), taskID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(taskRuns)
+}
+
+// GetTaskRunHandler handles the GET /tasks/{id}/runs/{runID} endpoint.
+func (h *TaskHandler) GetTaskRunHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	runID := chi.URLParam(r, "runID")
+
+	taskID := uuid.MustParse(id)
+	if taskID == uuid.Nil {
+		http.Error(w, "invalid task ID", http.StatusBadRequest)
+		return
+	}
+
+	runUUID := uuid.MustParse(runID)
+	if runUUID == uuid.Nil {
+		http.Error(w, "invalid run ID", http.StatusBadRequest)
+		return
+	}
+
+	taskRun, err := h.service.FindTaskRunByID(r.Context(), taskID, runUUID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	json.NewEncoder(w).Encode(taskRun)
+}
+
 // RegisterTasksRoutes registers the routes for the tasks API.
 func RegisterTasksRoutes(r chi.Router, service services.TaskService) {
 	handler := NewTaskHandler(service)
 
 	r.Get("/tasks", handler.GetTasksHandler)
 	r.Get("/tasks/{id}", handler.GetTaskHandler)
-	r.Post("/tasks/{id}/run", handler.RunTaskHandler)
+	r.Post("/tasks/{id}/runs", handler.RunTaskHandler)
+	r.Get("/tasks/{id}/runs", handler.GetTaskRunsHandler)
 	r.Put("/tasks/{id}/steps", handler.UpdateStepsHandler)
 	r.Post("/tasks", handler.CreateTaskHandler)
 }
