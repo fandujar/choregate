@@ -92,6 +92,7 @@ func (h *TaskHandler) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 // RunTaskHandler handles the POST /tasks/{id}/run endpoint.
 func (h *TaskHandler) RunTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	runID := chi.URLParam(r, "taskRunID")
 
 	taskID := uuid.MustParse(id)
 	if taskID == uuid.Nil {
@@ -99,7 +100,19 @@ func (h *TaskHandler) RunTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.service.Run(r.Context(), taskID)
+	var taskRunID uuid.UUID
+
+	if runID == "" {
+		taskRunID = uuid.Nil
+	} else {
+		taskRunID := uuid.MustParse(runID)
+		if taskRunID == uuid.Nil {
+			http.Error(w, "invalid task run ID", http.StatusBadRequest)
+			return
+		}
+	}
+
+	err := h.service.Run(r.Context(), taskID, taskRunID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -172,13 +185,19 @@ func (h *TaskHandler) GetTaskRunHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	runUUID := uuid.MustParse(runID)
-	if runUUID == uuid.Nil {
-		http.Error(w, "invalid run ID", http.StatusBadRequest)
-		return
+	var taskRunID uuid.UUID
+
+	if runID == "" {
+		taskRunID = uuid.Nil
+	} else {
+		taskRunID := uuid.MustParse(runID)
+		if taskRunID == uuid.Nil {
+			http.Error(w, "invalid task run ID", http.StatusBadRequest)
+			return
+		}
 	}
 
-	taskRun, err := h.service.FindTaskRunByID(r.Context(), taskID, runUUID)
+	taskRun, err := h.service.FindTaskRunByID(r.Context(), taskID, taskRunID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -195,6 +214,8 @@ func RegisterTasksRoutes(r chi.Router, service services.TaskService) {
 	r.Get("/tasks/{id}", handler.GetTaskHandler)
 	r.Post("/tasks/{id}/runs", handler.RunTaskHandler)
 	r.Get("/tasks/{id}/runs", handler.GetTaskRunsHandler)
+	r.Get("/tasks/{id}/runs/{runID}", handler.GetTaskRunHandler)
+	r.Post("/tasks/{id}/runs/{runID}/retry", handler.RunTaskHandler)
 	r.Put("/tasks/{id}/steps", handler.UpdateStepsHandler)
 	r.Post("/tasks", handler.CreateTaskHandler)
 }

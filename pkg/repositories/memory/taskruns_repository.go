@@ -9,13 +9,13 @@ import (
 
 // InMemoryTaskRunRepository is an in-memory task run repository.
 type InMemoryTaskRunRepository struct {
-	taskRuns map[string]*entities.TaskRun
+	taskRuns map[uuid.UUID]*entities.TaskRun
 }
 
 // NewInMemoryTaskRunRepository creates a new instance of InMemoryTaskRunRepository.
 func NewInMemoryTaskRunRepository() *InMemoryTaskRunRepository {
 	return &InMemoryTaskRunRepository{
-		taskRuns: make(map[string]*entities.TaskRun),
+		taskRuns: make(map[uuid.UUID]*entities.TaskRun),
 	}
 }
 
@@ -29,7 +29,7 @@ func (r *InMemoryTaskRunRepository) FindAll(ctx context.Context) ([]*entities.Ta
 }
 
 // FindByID returns the task run with the specified ID.
-func (r *InMemoryTaskRunRepository) FindByID(ctx context.Context, id string) (*entities.TaskRun, error) {
+func (r *InMemoryTaskRunRepository) FindByID(ctx context.Context, id uuid.UUID) (*entities.TaskRun, error) {
 	taskRun, ok := r.taskRuns[id]
 	if !ok {
 		return nil, entities.ErrTaskRunNotFound{}
@@ -56,7 +56,7 @@ func (r *InMemoryTaskRunRepository) Update(ctx context.Context, taskRun *entitie
 }
 
 // Delete removes a task run from the repository.
-func (r *InMemoryTaskRunRepository) Delete(ctx context.Context, id string) error {
+func (r *InMemoryTaskRunRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	if _, ok := r.taskRuns[id]; !ok {
 		return entities.ErrTaskRunNotFound{}
 	}

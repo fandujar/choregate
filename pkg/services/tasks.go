@@ -7,6 +7,7 @@ import (
 	"github.com/fandujar/choregate/pkg/entities"
 	"github.com/fandujar/choregate/pkg/providers"
 	"github.com/fandujar/choregate/pkg/repositories"
+	"github.com/fandujar/choregate/pkg/utils"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	tekton "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
@@ -55,30 +56,49 @@ func (s *TaskService) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // Run runs a task.
-func (s *TaskService) Run(ctx context.Context, id uuid.UUID) error {
-	task, err := s.taskRepo.FindByID(ctx, id)
+func (s *TaskService) Run(ctx context.Context, taskID uuid.UUID, taskRunID uuid.UUID) error {
+	task, err := s.taskRepo.FindByID(ctx, taskID)
 	if err != nil {
 		return err
 	}
 
-	taskRun, err := entities.NewTaskRun(
-		&entities.TaskRunConfig{
-			TaskID: task.ID,
-			TaskRun: &tekton.TaskRun{
-				ObjectMeta: metav1.ObjectMeta{
-					GenerateName: fmt.Sprintf("%s-", task.ID.String()),
-					Namespace:    task.Namespace,
-				},
-				Spec: tekton.TaskRunSpec{
-					TaskSpec: &tekton.TaskSpec{
-						Steps: task.Steps,
+	if task.Steps == nil {
+		return fmt.Errorf("task %s has no steps", task.ID)
+	}
+
+	var taskRun *entities.TaskRun
+
+	if taskRunID == uuid.Nil {
+		taskRunID, err := utils.GenerateID()
+		if err != nil {
+			return err
+		}
+
+		taskRun, err = entities.NewTaskRun(
+			&entities.TaskRunConfig{
+				ID:     taskRunID,
+				TaskID: task.ID,
+				TaskRun: &tekton.TaskRun{
+					ObjectMeta: metav1.ObjectMeta{
+						GenerateName: fmt.Sprintf("%s-", taskRunID),
+						Namespace:    task.Namespace,
+					},
+					Spec: tekton.TaskRunSpec{
+						TaskSpec: &tekton.TaskSpec{
+							Steps: task.Steps,
+						},
 					},
 				},
 			},
-		},
-	)
-	if err != nil {
-		return err
+		)
+		if err != nil {
+			return err
+		}
+	} else {
+		// TODO: Check if taskRun already exists and update it instead of creating a new one.
+		// this is used to re-run a taskRun.
+		log.Debug().Msgf("taskRunID is not empty %s", taskRunID.String())
+		return fmt.Errorf("retry or re-run not implemented")
 	}
 
 	if err := s.taskRunRepo.Create(ctx, taskRun); err != nil {
@@ -99,4 +119,9 @@ func (s *TaskService) Run(ctx context.Context, id uuid.UUID) error {
 // FindTaskRuns returns all task runs for a task.
 func (s *TaskService) FindTaskRuns(ctx context.Context, taskID uuid.UUID) ([]*entities.TaskRun, error) {
 	return s.taskRunRepo.FindByTaskID(ctx, taskID)
+}
+
+// FindTaskRunByID returns a task run by ID.
+func (s *TaskService) FindTaskRunByID(ctx context.Context, taskID uuid.UUID, taskRunID uuid.UUID) (*entities.TaskRun, error) {
+	return s.taskRunRepo.FindByID(ctx, taskRunID)
 }

@@ -6,7 +6,7 @@ import (
 )
 
 type TaskRunConfig struct {
-	ID     string
+	ID     uuid.UUID
 	TaskID uuid.UUID
 	*tekton.TaskRun
 }
@@ -17,15 +17,15 @@ type TaskRun struct {
 
 // NewTaskRun creates a new TaskRun with the given configuration and default values.
 func NewTaskRun(config *TaskRunConfig) (*TaskRun, error) {
-	if config.ID == "" {
-		config.ID = config.TaskRun.Name
+	if config.ID == uuid.Nil {
+		config.ID = uuid.MustParse(config.TaskRun.Name[0:35])
 	}
 
 	if config.TaskRun.Labels == nil {
 		config.TaskRun.Labels = make(map[string]string, 2)
 		// Add the task ID and taskRun ID to the labels.
 		config.TaskRun.Labels["choregate.fandujar.dev/task-id"] = config.TaskID.String()
-		config.TaskRun.Labels["choregate.fandujar.dev/taskrun-id"] = config.ID
+		config.TaskRun.Labels["choregate.fandujar.dev/taskrun-id"] = config.ID.String()
 	}
 
 	return &TaskRun{
