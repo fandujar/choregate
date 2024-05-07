@@ -12,7 +12,6 @@ type TaskRunConfig struct {
 }
 
 type TaskRun struct {
-	Error error
 	*TaskRunConfig
 }
 

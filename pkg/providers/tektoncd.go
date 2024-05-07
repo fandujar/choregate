@@ -10,6 +10,7 @@ import (
 	tektonVersioned "github.com/tektoncd/pipeline/pkg/client/clientset/versioned"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	cliconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -22,7 +23,7 @@ type TektonClient interface {
 	// RunTask runs a task.
 	RunTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun) error
 	// WatchTaskRun watches a task run.
-	WatchTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun, id uuid.UUID) error
+	WatchTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun, id uuid.UUID) (<-chan watch.Event, error)
 }
 
 type TektonClientImpl struct {
@@ -99,24 +100,16 @@ func (c *TektonClientImpl) RunTaskRun(ctx context.Context, taskRun *tektonAPI.Ta
 	return nil
 }
 
-func (c *TektonClientImpl) WatchTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun, id uuid.UUID) error {
+func (c *TektonClientImpl) WatchTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun, id uuid.UUID) (<-chan watch.Event, error) {
 	namespace := taskRun.Namespace
 
 	// Watch the task run.
-	watcher, err := c.tektonClient.TektonV1().TaskRuns(namespace).Watch(context.Background(), metav1.ListOptions{
+	watcher, err := c.tektonClient.TektonV1().TaskRuns(namespace).Watch(ctx, metav1.ListOptions{
 		LabelSelector: "choregate.fandujar.dev/taskrun-id=" + id.String(),
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// TODO: refactor this to use a channel to signal the end of the watch and return an error if the task run fails.
-	for event := range watcher.ResultChan() {
-		obj := event.Object.(*tektonAPI.TaskRun)
-		// print the type of each status condition
-		if len(obj.Status.Conditions) > 0 {
-			tekton.
-	}
-
-	return nil
+	return watcher.ResultChan(), nil
 }

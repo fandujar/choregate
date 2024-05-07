@@ -85,7 +85,8 @@ func (s *TaskService) Run(ctx context.Context, taskID uuid.UUID, taskRunID uuid.
 					},
 					Spec: tekton.TaskRunSpec{
 						TaskSpec: &tekton.TaskSpec{
-							Steps: task.Steps,
+							Steps:  task.Steps,
+							Params: task.Params,
 						},
 					},
 				},
@@ -115,10 +116,18 @@ func (s *TaskService) Run(ctx context.Context, taskID uuid.UUID, taskRunID uuid.
 
 	// spin a goroutine to watch the taskRun
 	go func() {
-		if err := s.tektonClient.WatchTaskRun(ctx, taskRun.TaskRun, taskRun.ID); err != nil {
-			taskRun.Error = err
+		ctx := context.Background()
+
+		event, err := s.tektonClient.WatchTaskRun(ctx, taskRun.TaskRun, taskRun.ID)
+		if err != nil {
+			log.Error().Err(err).Msg("failed to watch task run")
+			return
+		}
+
+		for e := range event {
+			obj := e.Object.(*tekton.TaskRun)
+			taskRun.Status = obj.Status
 			s.taskRunRepo.Update(ctx, taskRun)
-			log.Error().Err(err).Msg("failed to watch taskRun")
 		}
 	}()
 
