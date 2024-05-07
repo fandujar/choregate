@@ -105,13 +105,22 @@ func (s *TaskService) Run(ctx context.Context, taskID uuid.UUID, taskRunID uuid.
 		return err
 	}
 
-	if err := s.tektonClient.RunTask(ctx, taskRun.TaskRun); err != nil {
+	if err := s.tektonClient.RunTaskRun(ctx, taskRun.TaskRun); err != nil {
 		log.Error().Err(err).Msg("failed to run task")
 		if err := s.taskRunRepo.Update(ctx, taskRun); err != nil {
 			return err
 		}
 		return err
 	}
+
+	// spin a goroutine to watch the taskRun
+	go func() {
+		if err := s.tektonClient.WatchTaskRun(ctx, taskRun.TaskRun, taskRun.ID); err != nil {
+			taskRun.Error = err
+			s.taskRunRepo.Update(ctx, taskRun)
+			log.Error().Err(err).Msg("failed to watch taskRun")
+		}
+	}()
 
 	return nil
 }

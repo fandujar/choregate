@@ -20,7 +20,9 @@ type TektonClient interface {
 	// GetTaskRun returns a task run by name.
 	GetTaskRun(ctx context.Context, namespace string, id uuid.UUID) (*tektonAPI.TaskRun, error)
 	// RunTask runs a task.
-	RunTask(ctx context.Context, taskRun *tektonAPI.TaskRun) error
+	RunTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun) error
+	// WatchTaskRun watches a task run.
+	WatchTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun, id uuid.UUID) error
 }
 
 type TektonClientImpl struct {
@@ -86,12 +88,34 @@ func (c *TektonClientImpl) Logs(ctx context.Context, taskRun *tektonAPI.TaskRun)
 	return string(raw), nil
 }
 
-func (c *TektonClientImpl) RunTask(ctx context.Context, taskRun *tektonAPI.TaskRun) error {
+func (c *TektonClientImpl) RunTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun) error {
 	namespace := taskRun.Namespace
 
 	_, err := c.tektonClient.TektonV1().TaskRuns(namespace).Create(ctx, taskRun, metav1.CreateOptions{})
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (c *TektonClientImpl) WatchTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun, id uuid.UUID) error {
+	namespace := taskRun.Namespace
+
+	// Watch the task run.
+	watcher, err := c.tektonClient.TektonV1().TaskRuns(namespace).Watch(context.Background(), metav1.ListOptions{
+		LabelSelector: "choregate.fandujar.dev/taskrun-id=" + id.String(),
+	})
+	if err != nil {
+		return err
+	}
+
+	// TODO: refactor this to use a channel to signal the end of the watch and return an error if the task run fails.
+	for event := range watcher.ResultChan() {
+		obj := event.Object.(*tektonAPI.TaskRun)
+		// print the type of each status condition
+		if len(obj.Status.Conditions) > 0 {
+			tekton.
 	}
 
 	return nil

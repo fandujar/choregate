@@ -45,8 +45,9 @@ func (h *TaskHandler) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 func (h *TaskHandler) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	taskID := uuid.MustParse(id)
-	if taskID == uuid.Nil {
+	taskID, err := uuid.Parse(id)
+	if taskID == uuid.Nil || err != nil {
+		log.Error().Err(err).Msgf("invalid task ID: %s", id)
 		http.Error(w, "invalid task ID", http.StatusBadRequest)
 		return
 	}
