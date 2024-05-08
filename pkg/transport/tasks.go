@@ -207,16 +207,24 @@ func (h *TaskHandler) GetTaskRunHandler(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(taskRun)
 }
 
+// FakeHandler is a placeholder for future use
+func (h *TaskHandler) FakeHandler(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "not implemented", http.StatusNotImplemented)
+}
+
 // RegisterTasksRoutes registers the routes for the tasks API.
 func RegisterTasksRoutes(r chi.Router, service services.TaskService) {
 	handler := NewTaskHandler(service)
 
 	r.Get("/tasks", handler.GetTasksHandler)
+	r.Post("/tasks", handler.CreateTaskHandler)
+
 	r.Get("/tasks/{id}", handler.GetTaskHandler)
 	r.Post("/tasks/{id}/runs", handler.RunTaskHandler)
 	r.Get("/tasks/{id}/runs", handler.GetTaskRunsHandler)
+	r.Put("/tasks/{id}/steps", handler.UpdateStepsHandler)
+
 	r.Get("/tasks/{id}/runs/{runID}", handler.GetTaskRunHandler)
 	r.Post("/tasks/{id}/runs/{runID}/retry", handler.RunTaskHandler)
-	r.Put("/tasks/{id}/steps", handler.UpdateStepsHandler)
-	r.Post("/tasks", handler.CreateTaskHandler)
+	r.Get("/tasks/{id}/runs/{runID}/logs", handler.FakeHandler)
 }
