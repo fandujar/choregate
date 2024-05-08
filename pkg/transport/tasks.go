@@ -106,7 +106,7 @@ func (h *TaskHandler) RunTaskHandler(w http.ResponseWriter, r *http.Request) {
 	if runID == "" {
 		taskRunID = uuid.Nil
 	} else {
-		taskRunID := uuid.MustParse(runID)
+		taskRunID = uuid.MustParse(runID)
 		if taskRunID == uuid.Nil {
 			http.Error(w, "invalid task run ID", http.StatusBadRequest)
 			return
@@ -207,6 +207,38 @@ func (h *TaskHandler) GetTaskRunHandler(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(taskRun)
 }
 
+// GetTaskRunLogsHandler handles the GET /tasks/{id}/runs/{runID}/logs endpoint.
+func (h *TaskHandler) GetTaskRunLogsHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	runID := chi.URLParam(r, "runID")
+
+	taskID := uuid.MustParse(id)
+	if taskID == uuid.Nil {
+		http.Error(w, "invalid task ID", http.StatusBadRequest)
+		return
+	}
+
+	var taskRunID uuid.UUID
+
+	if runID == "" {
+		taskRunID = uuid.Nil
+	} else {
+		taskRunID = uuid.MustParse(runID)
+		if taskRunID == uuid.Nil {
+			http.Error(w, "invalid task run ID", http.StatusBadRequest)
+			return
+		}
+	}
+
+	logs, err := h.service.FindTaskRunLogs(r.Context(), taskID, taskRunID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(logs)
+}
+
 // FakeHandler is a placeholder for future use
 func (h *TaskHandler) FakeHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "not implemented", http.StatusNotImplemented)
@@ -228,6 +260,5 @@ func RegisterTasksRoutes(r chi.Router, service services.TaskService) {
 
 	r.Get("/tasks/{id}/runs/{runID}", handler.GetTaskRunHandler)
 	r.Post("/tasks/{id}/runs/{runID}/retry", handler.RunTaskHandler)
-	// TODO: implement task run logs handler
-	r.Get("/tasks/{id}/runs/{runID}/logs", handler.FakeHandler)
+	r.Get("/tasks/{id}/runs/{runID}/logs", handler.GetTaskRunLogsHandler)
 }

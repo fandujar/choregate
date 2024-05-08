@@ -143,3 +143,13 @@ func (s *TaskService) FindTaskRuns(ctx context.Context, taskID uuid.UUID) ([]*en
 func (s *TaskService) FindTaskRunByID(ctx context.Context, taskID uuid.UUID, taskRunID uuid.UUID) (*entities.TaskRun, error) {
 	return s.taskRunRepo.FindByID(ctx, taskRunID)
 }
+
+// FindTaskRunLogs returns a stream of logs for a task run.
+func (s *TaskService) FindTaskRunLogs(ctx context.Context, taskID uuid.UUID, taskRunID uuid.UUID) (string, error) {
+	taskRun, err := s.FindTaskRunByID(ctx, taskID, taskRunID)
+	if err != nil {
+		return "", err
+	}
+
+	return s.tektonClient.GetTaskRunLogs(ctx, taskRun.TaskRun)
+}

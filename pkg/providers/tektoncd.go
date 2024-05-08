@@ -24,6 +24,8 @@ type TektonClient interface {
 	RunTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun) error
 	// WatchTaskRun watches a task run.
 	WatchTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun, id uuid.UUID) (<-chan watch.Event, error)
+	// GetTaskRunLogs returns a stream of logs for a task run.
+	GetTaskRunLogs(ctx context.Context, taskRun *tektonAPI.TaskRun) (string, error)
 }
 
 type TektonClientImpl struct {
@@ -112,4 +114,8 @@ func (c *TektonClientImpl) WatchTaskRun(ctx context.Context, taskRun *tektonAPI.
 	}
 
 	return watcher.ResultChan(), nil
+}
+
+func (c *TektonClientImpl) GetTaskRunLogs(ctx context.Context, taskRun *tektonAPI.TaskRun) (string, error) {
+	return c.Logs(ctx, taskRun)
 }
