@@ -223,9 +223,11 @@ func RegisterTasksRoutes(r chi.Router, service services.TaskService) {
 	r.Post("/tasks/{id}/runs", handler.RunTaskHandler)
 	r.Get("/tasks/{id}/runs", handler.GetTaskRunsHandler)
 	r.Put("/tasks/{id}/steps", handler.UpdateStepsHandler)
+	// TODO: implement task params handler
 	r.Put("/tasks/{id}/params", handler.FakeHandler)
 
 	r.Get("/tasks/{id}/runs/{runID}", handler.GetTaskRunHandler)
 	r.Post("/tasks/{id}/runs/{runID}/retry", handler.RunTaskHandler)
+	// TODO: implement task run logs handler
 	r.Get("/tasks/{id}/runs/{runID}/logs", handler.FakeHandler)
 }
