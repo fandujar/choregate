@@ -191,7 +191,7 @@ func (h *TaskHandler) GetTaskRunHandler(w http.ResponseWriter, r *http.Request) 
 	if runID == "" {
 		taskRunID = uuid.Nil
 	} else {
-		taskRunID := uuid.MustParse(runID)
+		taskRunID = uuid.MustParse(runID)
 		if taskRunID == uuid.Nil {
 			http.Error(w, "invalid task run ID", http.StatusBadRequest)
 			return
