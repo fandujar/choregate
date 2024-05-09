@@ -19,4 +19,4 @@ cmd/choregate/ui/dist
 ui/node_modules
 
 #Ignore air temp files
-./temp/
+temp/
