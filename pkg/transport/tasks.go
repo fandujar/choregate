@@ -113,6 +113,7 @@ func (h *TaskHandler) RunTaskHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	log.Debug().Msgf("running task %s", taskID)
 	err := h.service.Run(r.Context(), taskID, taskRunID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

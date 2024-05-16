@@ -14,6 +14,7 @@ import (
 	"github.com/fandujar/choregate/pkg/transport"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -26,6 +27,10 @@ func main() {
 	log.Info().Msg("starting choregate")
 
 	r := chi.NewRouter()
+	r.Use(cors.Handler(cors.Options{
+		AllowOriginFunc: func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:  []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	}))
 
 	// Create repositories
 	// Check which type of repository is being used
