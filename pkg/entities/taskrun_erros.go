@@ -20,3 +20,10 @@ type ErrTaskRunInvalid struct{}
 func (e ErrTaskRunInvalid) Error() string {
 	return "task run is invalid"
 }
+
+// ErrTaskRunFailed is an error that is returned when a task run has failed.
+type ErrTaskRunFailed struct{}
+
+func (e ErrTaskRunFailed) Error() string {
+	return "task run has failed"
+}

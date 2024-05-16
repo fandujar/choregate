@@ -63,3 +63,14 @@ func (r *InMemoryTaskRunRepository) Delete(ctx context.Context, id uuid.UUID) er
 	delete(r.taskRuns, id)
 	return nil
 }
+
+// FindByTaskID returns all task runs for a task.
+func (r *InMemoryTaskRunRepository) FindByTaskID(ctx context.Context, taskID uuid.UUID) ([]*entities.TaskRun, error) {
+	taskRuns := make([]*entities.TaskRun, 0)
+	for _, taskRun := range r.taskRuns {
+		if taskRun.TaskID == taskID {
+			taskRuns = append(taskRuns, taskRun)
+		}
+	}
+	return taskRuns, nil
+}

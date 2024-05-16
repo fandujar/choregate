@@ -12,6 +12,8 @@ type TaskRunRepository interface {
 	FindAll(ctx context.Context) ([]*entities.TaskRun, error)
 	// FindByID returns a task run by ID.
 	FindByID(ctx context.Context, id uuid.UUID) (*entities.TaskRun, error)
+	// FindByTaskID returns all task runs for a task.
+	FindByTaskID(ctx context.Context, taskID uuid.UUID) ([]*entities.TaskRun, error)
 	// Create creates a new task run.
 	Create(ctx context.Context, taskRun *entities.TaskRun) error
 	// Update updates a task run.

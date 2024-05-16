@@ -10,6 +10,7 @@ import (
 	tektonVersioned "github.com/tektoncd/pipeline/pkg/client/clientset/versioned"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	cliconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -20,7 +21,11 @@ type TektonClient interface {
 	// GetTaskRun returns a task run by name.
 	GetTaskRun(ctx context.Context, namespace string, id uuid.UUID) (*tektonAPI.TaskRun, error)
 	// RunTask runs a task.
-	RunTask(ctx context.Context, taskRun *tektonAPI.TaskRun) error
+	RunTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun) error
+	// WatchTaskRun watches a task run.
+	WatchTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun, id uuid.UUID) (<-chan watch.Event, error)
+	// GetTaskRunLogs returns a stream of logs for a task run.
+	GetTaskRunLogs(ctx context.Context, taskRun *tektonAPI.TaskRun) (string, error)
 }
 
 type TektonClientImpl struct {
@@ -86,7 +91,7 @@ func (c *TektonClientImpl) Logs(ctx context.Context, taskRun *tektonAPI.TaskRun)
 	return string(raw), nil
 }
 
-func (c *TektonClientImpl) RunTask(ctx context.Context, taskRun *tektonAPI.TaskRun) error {
+func (c *TektonClientImpl) RunTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun) error {
 	namespace := taskRun.Namespace
 
 	_, err := c.tektonClient.TektonV1().TaskRuns(namespace).Create(ctx, taskRun, metav1.CreateOptions{})
@@ -95,4 +100,22 @@ func (c *TektonClientImpl) RunTask(ctx context.Context, taskRun *tektonAPI.TaskR
 	}
 
 	return nil
+}
+
+func (c *TektonClientImpl) WatchTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun, id uuid.UUID) (<-chan watch.Event, error) {
+	namespace := taskRun.Namespace
+
+	// Watch the task run.
+	watcher, err := c.tektonClient.TektonV1().TaskRuns(namespace).Watch(ctx, metav1.ListOptions{
+		LabelSelector: "choregate.fandujar.dev/taskrun-id=" + id.String(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return watcher.ResultChan(), nil
+}
+
+func (c *TektonClientImpl) GetTaskRunLogs(ctx context.Context, taskRun *tektonAPI.TaskRun) (string, error) {
+	return c.Logs(ctx, taskRun)
 }
