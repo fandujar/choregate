@@ -6,10 +6,11 @@ import (
 )
 
 type UserConfig struct {
-	ID    uuid.UUID `json:"id"`
-	Slug  string    `json:"slug"`
-	Name  string    `json:"name"`
-	Email string    `json:"email"`
+	ID       uuid.UUID `json:"id"`
+	Slug     string    `json:"slug"`
+	Name     string    `json:"name"`
+	Email    string    `json:"email"`
+	Password string    `json:"password"`
 }
 
 type User struct {

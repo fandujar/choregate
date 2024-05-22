@@ -66,10 +66,12 @@ func main() {
 	// Create services
 	taskService := services.NewTaskService(taskRepository, taskRunRepository, tektonClient)
 	triggerService := services.NewTriggerService(triggerRepository)
+	userService := services.NewUserService(userRepository)
 
 	// Register the routes
 	transport.RegisterTasksRoutes(r, *taskService)
 	transport.RegisterTriggersRoutes(r, *triggerService)
+	transport.RegisterUsersRoutes(r, *userService)
 
 	// Prepare to handle signals
 	// Start the HTTP server
