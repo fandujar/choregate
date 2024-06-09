@@ -1,6 +1,5 @@
 import TaskList from './components/TaskList'
 import UserList from './components/UserList'
-import './App.css'
 
 function App() {
   return (
