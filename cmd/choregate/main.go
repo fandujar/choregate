@@ -41,6 +41,7 @@ func main() {
 	var userRepository repositories.UserRepository
 	var triggerRepository repositories.TriggerRepository
 	var teamRepository repositories.TeamRepository
+	var sessionsRepository repositories.SessionsRepository
 
 	if true {
 		// Create a memory repository
@@ -49,6 +50,7 @@ func main() {
 		userRepository = memory.NewInMemoryUserRepository()
 		triggerRepository = memory.NewInMemoryTriggerRepository()
 		teamRepository = memory.NewInMemoryTeamRepository()
+		sessionsRepository = memory.NewInMemorySessionsRepository()
 	}
 
 	// Print the type of each repository being used
@@ -56,6 +58,7 @@ func main() {
 	log.Debug().Msgf("type of userRepository: %T", userRepository)
 	log.Debug().Msgf("type of triggerRepository: %T", triggerRepository)
 	log.Debug().Msgf("type of teamRepository: %T", teamRepository)
+	log.Debug().Msgf("type of sessionsRepository: %T", sessionsRepository)
 
 	// Initialize tekton client
 	tektonClient, err := providers.NewTektonClient()
