@@ -1,5 +1,9 @@
 package providers
 
+import (
+	"net/http"
+)
+
 type AuthProvider interface {
 	// Login is a method that will be implemented by the auth provider
 	Login(username, password string) (string, error)
@@ -24,11 +28,8 @@ type AuthProviderImpl struct {
 }
 
 // NewAuthProvider creates a new AuthProvider
-func NewAuthProvider(username, password string) AuthProvider {
-	return &AuthProviderImpl{
-		Username: username,
-		Password: password,
-	}
+func NewAuthProvider() (AuthProvider, error) {
+	return &AuthProviderImpl{}, nil
 }
 
 // Login is a method that will be implemented by the auth provider
@@ -43,6 +44,14 @@ func (a *AuthProviderImpl) Logout(token string) error {
 
 // ValidateToken is a method that will be implemented by the auth provider
 func (a *AuthProviderImpl) ValidateToken(token string) (bool, error) {
+	if token == "" {
+		return false, nil
+	}
+
+	if token != a.Token {
+		return false, nil
+	}
+
 	return true, nil
 }
 
@@ -54,4 +63,16 @@ func (a *AuthProviderImpl) RefreshToken(token string) (string, error) {
 // GetToken is a method that will be implemented by the auth provider
 func (a *AuthProviderImpl) GetToken() string {
 	return ""
+}
+
+func AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := r.Header.Get("Authorization")
+		if token == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
