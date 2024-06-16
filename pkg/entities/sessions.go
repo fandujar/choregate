@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type Session struct {
+type SessionConfig struct {
 	// ID is the id of the session
 	ID uuid.UUID
 	// UserID is the id of the user
@@ -15,4 +15,14 @@ type Session struct {
 	Token string
 	// ExpiresAt is the expiration time of the session
 	ExpiresAt time.Duration
+}
+
+type Session struct {
+	*SessionConfig
+}
+
+func NewSession(config *SessionConfig) *Session {
+	return &Session{
+		SessionConfig: config,
+	}
 }

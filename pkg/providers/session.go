@@ -1,6 +1,8 @@
 package providers
 
 import (
+	"time"
+
 	"github.com/fandujar/choregate/pkg/entities"
 	"github.com/fandujar/choregate/pkg/repositories"
 	"github.com/fandujar/choregate/pkg/utils"
@@ -36,12 +38,6 @@ func NewSessionProvider(repository repositories.SessionsRepository) (SessionProv
 func (s *SessionProviderImpl) CreateSession(request SessionRequest) error {
 	var session entities.Session
 	var err error
-	if request.ID == uuid.Nil {
-		session.ID, err = utils.GenerateID()
-		if err != nil {
-			return err
-		}
-	}
 
 	if request.Username == "" || request.Password == "" {
 		return entities.ErrInvalidSession{}
@@ -66,7 +62,19 @@ func (s *SessionProviderImpl) CreateSession(request SessionRequest) error {
 		return entities.ErrInvalidSession{}
 	}
 
-	return nil
+	sessionID, err := utils.GenerateID()
+	if err != nil {
+		return err
+	}
+
+	session = *entities.NewSession(&entities.SessionConfig{
+		ID:        sessionID,
+		UserID:    request.Username,
+		Token:     request.Token,
+		ExpiresAt: 30 * time.Minute,
+	})
+
+	return s.Repository.CreateSession(session)
 }
 
 func (s *SessionProviderImpl) GetSession(id string) (entities.Session, error) {
@@ -80,5 +88,11 @@ func (s *SessionProviderImpl) GetSession(id string) (entities.Session, error) {
 }
 
 func (s *SessionProviderImpl) DeleteSession(id string) error {
-	return s.Repository.DeleteSession(id)
+	uid, err := uuid.Parse(id)
+
+	if err != nil {
+		return err
+	}
+
+	return s.Repository.DeleteSession(uid)
 }
