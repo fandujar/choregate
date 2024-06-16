@@ -1,30 +1,16 @@
 package repositories
 
-import "time"
-
-type Session struct {
-	// ID is the id of the session
-	ID string
-	// UserID is the id of the user
-	UserID string
-	// Token is the token of the session
-	Token string
-	// ExpiresAt is the expiration time of the session
-	ExpiresAt time.Duration
-}
-
-type ErrSessionNotFound struct{}
-
-func (e ErrSessionNotFound) Error() string {
-	return "session not found"
-}
+import (
+	"github.com/fandujar/choregate/pkg/entities"
+	"github.com/google/uuid"
+)
 
 // SessionsRepository is an interface that will be implemented by the sessions repository
 type SessionsRepository interface {
 	// CreateSession is a method that will be implemented by the sessions repository
-	CreateSession(session Session) error
+	CreateSession(session entities.Session) error
 	// GetSession is a method that will be implemented by the sessions repository
-	GetSession(id string) (Session, error)
+	GetSession(id uuid.UUID) (entities.Session, error)
 	// DeleteSession is a method that will be implemented by the sessions repository
-	DeleteSession(id string) error
+	DeleteSession(id uuid.UUID) error
 }

@@ -5,12 +5,10 @@ import (
 )
 
 type AuthProvider interface {
-	// Login is a method that will be implemented by the auth provider
-	Login(username, password string) (string, error)
-	// Logout is a method that will be implemented by the auth provider
-	Logout(token string) error
 	// ValidateToken is a method that will be implemented by the auth provider
 	ValidateToken(token string) (bool, error)
+	// ValidateUserPassword is a method that will be implemented by the auth provider
+	ValidateUserPassword(username, password string) (bool, error)
 	// RefreshToken is a method that will be implemented by the auth provider
 	RefreshToken(token string) (string, error)
 	// GetToken is a method that will be implemented by the auth provider
@@ -28,18 +26,12 @@ type AuthProviderImpl struct {
 }
 
 // NewAuthProvider creates a new AuthProvider
-func NewAuthProvider() (AuthProvider, error) {
-	return &AuthProviderImpl{}, nil
-}
-
-// Login is a method that will be implemented by the auth provider
-func (a *AuthProviderImpl) Login(username, password string) (string, error) {
-	return "", nil
-}
-
-// Logout is a method that will be implemented by the auth provider
-func (a *AuthProviderImpl) Logout(token string) error {
-	return nil
+func NewAuthProvider(username, password, token string) (AuthProvider, error) {
+	return &AuthProviderImpl{
+		Username: username,
+		Password: password,
+		Token:    token,
+	}, nil
 }
 
 // ValidateToken is a method that will be implemented by the auth provider
@@ -52,6 +44,14 @@ func (a *AuthProviderImpl) ValidateToken(token string) (bool, error) {
 		return false, nil
 	}
 
+	return true, nil
+}
+
+// ValidateUserPassword is a method that will be implemented by the auth provider
+func (a *AuthProviderImpl) ValidateUserPassword(username, password string) (bool, error) {
+	if username == "" || password == "" {
+		return false, nil
+	}
 	return true, nil
 }
 
