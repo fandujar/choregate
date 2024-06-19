@@ -11,7 +11,8 @@ type User = {
 
 interface UserListProps {}
 
-const UserList = (props: UserListProps) => {
+const UserList = (_: UserListProps) => {
+    
     const [update, setUpdate] = useState<boolean>(true);
     const [users, setUsers] = useState<User[]>([]);
 

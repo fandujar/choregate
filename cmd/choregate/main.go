@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"net/http"
 	"os"
 	"os/signal"
@@ -31,6 +32,9 @@ func main() {
 		AllowOriginFunc: func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:  []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 	}))
+
+	// Serve the UI
+	r.Get("/*", choregateUI)
 
 	// Create repositories
 	// Check which type of repository is being used
@@ -72,9 +76,11 @@ func main() {
 	userService := services.NewUserService(userRepository)
 
 	// Register the routes
-	transport.RegisterTasksRoutes(r, *taskService)
-	transport.RegisterTriggersRoutes(r, *triggerService)
-	transport.RegisterUsersRoutes(r, *userService)
+	r.Group(func(r chi.Router) {
+		transport.RegisterTasksRoutes(r, *taskService)
+		transport.RegisterTriggersRoutes(r, *triggerService)
+		transport.RegisterUsersRoutes(r, *userService)
+	})
 
 	// Prepare to handle signals
 	// Start the HTTP server
@@ -103,4 +109,12 @@ func main() {
 	// Wait for a signal
 	<-shutdown
 	log.Info().Msg("shutting down server")
+}
+
+//go:embed ui/*
+var choregateUIFS embed.FS
+
+// choregateUI is a handler that serves the UI for Choregate static files
+func choregateUI(w http.ResponseWriter, r *http.Request) {
+	http.FileServer(http.FS(choregateUIFS)).ServeHTTP(w, r)
 }
