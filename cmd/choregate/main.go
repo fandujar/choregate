@@ -15,10 +15,19 @@ import (
 	"github.com/fandujar/choregate/pkg/transport"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
+
+//go:embed ui/*
+var choregateUIFS embed.FS
+
+// choregateUI is a handler that serves the UI for Choregate static files
+func choregateUI(w http.ResponseWriter, r *http.Request) {
+	http.FileServer(http.FS(choregateUIFS)).ServeHTTP(w, r)
+}
 
 func main() {
 	// Configure the logger level and format
@@ -77,6 +86,12 @@ func main() {
 
 	// Register the routes
 	r.Group(func(r chi.Router) {
+		r.Use(
+			middleware.RequestID,
+			middleware.Logger,
+			middleware.RealIP,
+			middleware.Recoverer,
+		)
 		transport.RegisterTasksRoutes(r, *taskService)
 		transport.RegisterTriggersRoutes(r, *triggerService)
 		transport.RegisterUsersRoutes(r, *userService)
@@ -109,12 +124,4 @@ func main() {
 	// Wait for a signal
 	<-shutdown
 	log.Info().Msg("shutting down server")
-}
-
-//go:embed ui/*
-var choregateUIFS embed.FS
-
-// choregateUI is a handler that serves the UI for Choregate static files
-func choregateUI(w http.ResponseWriter, r *http.Request) {
-	http.FileServer(http.FS(choregateUIFS)).ServeHTTP(w, r)
 }
