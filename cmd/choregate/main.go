@@ -17,17 +17,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
-//go:embed ui/*
+//go:embed index.html assets/*
 var choregateUIFS embed.FS
-
-// choregateUI is a handler that serves the UI for Choregate static files
-func choregateUI(w http.ResponseWriter, r *http.Request) {
-	http.FileServer(http.FS(choregateUIFS)).ServeHTTP(w, r)
-}
 
 func main() {
 	// Configure the logger level and format
@@ -43,7 +39,16 @@ func main() {
 	}))
 
 	// Serve the UI
-	r.Get("/*", choregateUI)
+	r.Route("/", func(r chi.Router) {
+		r.Use(
+			CustomLogger(),
+			middleware.RequestID,
+			middleware.RealIP,
+			middleware.Recoverer,
+		)
+
+		r.Handle("/*", http.FileServer(http.FS(choregateUIFS)))
+	})
 
 	// Create repositories
 	// Check which type of repository is being used
@@ -84,11 +89,20 @@ func main() {
 	triggerService := services.NewTriggerService(triggerRepository)
 	userService := services.NewUserService(userRepository)
 
+	// Create the auth provider
+	authProvider, err := providers.NewAuthProvider()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create auth provider")
+	}
+	tokenAuth := authProvider.NewTokenAuth()
+
 	// Register the routes
 	r.Route("/api", func(r chi.Router) {
 		r.Use(
-			middleware.RequestID,
 			CustomLogger(),
+			middleware.RequestID,
+			jwtauth.Verifier(tokenAuth),
+			jwtauth.Authenticator(tokenAuth),
 			middleware.RealIP,
 			middleware.Recoverer,
 		)

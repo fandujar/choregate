@@ -1,7 +1,10 @@
 package providers
 
 import (
-	"net/http"
+	"errors"
+	"os"
+
+	"github.com/go-chi/jwtauth/v5"
 )
 
 type AuthProvider interface {
@@ -11,39 +14,40 @@ type AuthProvider interface {
 	ValidateUserPassword(username, password string) (bool, error)
 	// RefreshToken is a method that will be implemented by the auth provider
 	RefreshToken(token string) (string, error)
-	// GetToken is a method that will be implemented by the auth provider
-	GetToken() string
+	// GenerateToken is a method that will be implemented by the auth provider
+	GenerateToken(username string) (string, error)
+	// NewTokenAuth is a method that will be implemented by the auth provider
+	NewTokenAuth() *jwtauth.JWTAuth
 }
 
 // AuthProviderImpl is the default implementation of the AuthProvider interface
 type AuthProviderImpl struct {
-	// Username is the username of the user
-	Username string
-	// Password is the password of the user
-	Password string
-	// Token is the token of the user
-	Token string
+	JWTSecret string
+	JWTAuth   *jwtauth.JWTAuth
 }
 
 // NewAuthProvider creates a new AuthProvider
-func NewAuthProvider(username, password, token string) (AuthProvider, error) {
+func NewAuthProvider() (AuthProvider, error) {
+	secret := os.Getenv("CHOREGATE_JWT_SECRET")
+	if secret == "" {
+		return nil, errors.New("missing CHOREGATE_JWT_SECRET environment variable")
+	}
+
 	return &AuthProviderImpl{
-		Username: username,
-		Password: password,
-		Token:    token,
+		JWTSecret: secret,
 	}, nil
+}
+
+// NewTokenAuth is a method that will be implemented by the auth provider
+func (a *AuthProviderImpl) NewTokenAuth() *jwtauth.JWTAuth {
+	if a.JWTAuth == nil {
+		a.JWTAuth = jwtauth.New("HS256", []byte(a.JWTSecret), nil)
+	}
+	return a.JWTAuth
 }
 
 // ValidateToken is a method that will be implemented by the auth provider
 func (a *AuthProviderImpl) ValidateToken(token string) (bool, error) {
-	if token == "" {
-		return false, nil
-	}
-
-	if token != a.Token {
-		return false, nil
-	}
-
 	return true, nil
 }
 
@@ -61,18 +65,11 @@ func (a *AuthProviderImpl) RefreshToken(token string) (string, error) {
 }
 
 // GetToken is a method that will be implemented by the auth provider
-func (a *AuthProviderImpl) GetToken() string {
-	return ""
-}
+func (a *AuthProviderImpl) GenerateToken(username string) (string, error) {
+	_, token, err := a.NewTokenAuth().Encode(map[string]interface{}{"username": username})
+	if err != nil {
+		return "", err
+	}
 
-func AuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("Authorization")
-		if token == "" {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
+	return token, nil
 }

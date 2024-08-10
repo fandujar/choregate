@@ -43,11 +43,7 @@ func (s *SessionProviderImpl) CreateSession(request SessionRequest) error {
 		return entities.ErrInvalidSession{}
 	}
 
-	auth, err := NewAuthProvider(
-		request.Username,
-		request.Password,
-		request.Token,
-	)
+	auth, err := NewAuthProvider()
 
 	if err != nil {
 		return err
