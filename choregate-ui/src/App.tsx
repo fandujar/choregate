@@ -1,18 +1,11 @@
-import TaskList from './components/TaskList'
-import UserList from './components/UserList'
+import { BrowserRouter } from 'react-router-dom';
+import { Router } from './Router';
 
 function App() {
   return (
-    <>
-      <div className="container" style={{ height: '100vh', width: '200vh', display: 'flex', flexDirection: 'row' }}>
-        <div className="column" style={{ flex: 1 }}>
-          <UserList />
-        </div>
-        <div className="column" style={{ flex: 1 }}>
-          <TaskList />
-        </div>
-      </div>
-    </>
+    <BrowserRouter>
+      <Router />
+    </BrowserRouter>
   )
 }
 

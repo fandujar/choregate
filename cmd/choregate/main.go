@@ -38,18 +38,6 @@ func main() {
 		AllowedMethods:  []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 	}))
 
-	// Serve the UI
-	r.Route("/", func(r chi.Router) {
-		r.Use(
-			CustomLogger(),
-			middleware.RequestID,
-			middleware.RealIP,
-			middleware.Recoverer,
-		)
-
-		r.Handle("/*", http.FileServer(http.FS(choregateUIFS)))
-	})
-
 	// Create repositories
 	// Check which type of repository is being used
 	// implemented types: memory
@@ -95,6 +83,59 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to create auth provider")
 	}
 	tokenAuth := authProvider.NewTokenAuth()
+
+	// Serve the UI
+	r.Route("/", func(r chi.Router) {
+		r.Use(
+			CustomLogger(),
+			middleware.RequestID,
+			middleware.RealIP,
+			middleware.Recoverer,
+		)
+		r.Handle("/*", http.FileServer(http.FS(choregateUIFS)))
+	})
+
+	// Handle login
+	r.Route("/user", func(r chi.Router) {
+		r.Use(
+			CustomLogger(),
+			middleware.RequestID,
+			middleware.RealIP,
+			middleware.Recoverer,
+		)
+		r.Post("/login", func(w http.ResponseWriter, r *http.Request) {
+			err := r.ParseForm()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			token, err := authProvider.HandleLogin(r.FormValue("username"), r.FormValue("password"))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusUnauthorized)
+				return
+			}
+			http.SetCookie(w, &http.Cookie{
+				Name:     "jwt",
+				Value:    token,
+				Expires:  time.Now().Add(24 * time.Hour),
+				HttpOnly: true,
+				// Secure:   true,
+				SameSite: http.SameSiteLaxMode,
+			})
+
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+		})
+		r.Post("/logout", func(w http.ResponseWriter, r *http.Request) {
+			http.SetCookie(w, &http.Cookie{
+				Name:     "jwt",
+				Value:    "",
+				MaxAge:   -1,
+				HttpOnly: true,
+				SameSite: http.SameSiteLaxMode,
+			})
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+		})
+	})
 
 	// Register the routes
 	r.Route("/api", func(r chi.Router) {

@@ -49,7 +49,7 @@ func (s *SessionProviderImpl) CreateSession(request SessionRequest) error {
 		return err
 	}
 
-	valid, err := auth.ValidateUserPassword(request.Username, request.Password)
+	_, valid, err := auth.ValidateUserPassword(request.Username, request.Password)
 	if err != nil {
 		return err
 	}
