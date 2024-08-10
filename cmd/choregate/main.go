@@ -85,10 +85,10 @@ func main() {
 	userService := services.NewUserService(userRepository)
 
 	// Register the routes
-	r.Group(func(r chi.Router) {
+	r.Route("/api", func(r chi.Router) {
 		r.Use(
 			middleware.RequestID,
-			middleware.Logger,
+			CustomLogger(),
 			middleware.RealIP,
 			middleware.Recoverer,
 		)
@@ -124,4 +124,24 @@ func main() {
 	// Wait for a signal
 	<-shutdown
 	log.Info().Msg("shutting down server")
+}
+
+func CustomLogger() func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+			t1 := time.Now()
+			defer func() {
+				t2 := time.Now()
+				log.Info().Msgf(
+					"%s - url: %s - from: %s - %d - %d in %s",
+					r.Method, r.URL, r.RemoteAddr, ww.Status(), ww.BytesWritten(), t2.Sub(t1),
+				)
+
+			}()
+
+			next.ServeHTTP(ww, r)
+		}
+		return http.HandlerFunc(fn)
+	}
 }
