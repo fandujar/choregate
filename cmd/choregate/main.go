@@ -123,6 +123,7 @@ func main() {
 				Value:    token,
 				HttpOnly: true,
 				SameSite: http.SameSiteLaxMode,
+				Path:     "/",
 				Secure:   false,
 			})
 
