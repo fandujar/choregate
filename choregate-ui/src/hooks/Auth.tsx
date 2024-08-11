@@ -1,20 +1,21 @@
-import React, { useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const AuthContext = React.createContext({});
-
-export const useAuth = () => React.useContext(AuthContext);
+const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+    const [user, setUser] = useState({});
     const navigate = useNavigate();
-    const [user, setUser] = React.useState({});
 
     useEffect(() => {
-        if (!user) {
+        const token = localStorage.getItem('jwt');
+        if (!token) {
             navigate('/login');
+        } else {
+            navigate('/');
         }
-        setUser({ username: 'test' });
-    }, []);
+
+    }, [setUser]);
 
     return (
         <AuthContext.Provider value={user}>
@@ -22,3 +23,5 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         </AuthContext.Provider>
     );
 }
+
+export const useAuth = () => useContext(AuthContext);

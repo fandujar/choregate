@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
 	"net/http"
 	"os"
 	"os/signal"
@@ -118,28 +119,14 @@ func main() {
 				return
 			}
 
-			http.SetCookie(w, &http.Cookie{
-				Name:     "jwt",
-				Value:    token,
-				HttpOnly: true,
-				SameSite: http.SameSiteLaxMode,
-				Path:     "/",
-				Secure:   false,
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]string{
+				"token": token,
 			})
+		})
+		// r.Post("/logout", func(w http.ResponseWriter, r *http.Request) {
 
-			http.Redirect(w, r, "/", http.StatusSeeOther)
-		})
-		r.Post("/logout", func(w http.ResponseWriter, r *http.Request) {
-			http.SetCookie(w, &http.Cookie{
-				Name:     "jwt",
-				Value:    "",
-				MaxAge:   -1,
-				HttpOnly: true,
-				SameSite: http.SameSiteLaxMode,
-				Secure:   false,
-			})
-			http.Redirect(w, r, "/", http.StatusSeeOther)
-		})
+		// })
 	})
 
 	// Register the routes
