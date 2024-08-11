@@ -2,12 +2,13 @@ import { useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import TaskList from '../components/TaskList'
 import UserList from '../components/UserList'
+import Cookies from 'js-cookie';
 
 export const Home = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    const token = localStorage.getItem('token')
+    const token = Cookies.get('jwt');
     if (!token) {
       navigate('/login')
     }

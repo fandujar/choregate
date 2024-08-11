@@ -109,18 +109,22 @@ func main() {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			token, err := authProvider.HandleLogin(r.FormValue("username"), r.FormValue("password"))
+			token, err := authProvider.HandleLogin(
+				r.FormValue("username"),
+				r.FormValue("password"),
+			)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
+
+			// write on local storage
 			http.SetCookie(w, &http.Cookie{
 				Name:     "jwt",
 				Value:    token,
-				Expires:  time.Now().Add(24 * time.Hour),
 				HttpOnly: true,
-				// Secure:   true,
-				SameSite: http.SameSiteLaxMode,
+				SameSite: http.SameSiteStrictMode,
+				Secure:   true,
 			})
 
 			http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -131,7 +135,8 @@ func main() {
 				Value:    "",
 				MaxAge:   -1,
 				HttpOnly: true,
-				SameSite: http.SameSiteLaxMode,
+				SameSite: http.SameSiteStrictMode,
+				Secure:   true,
 			})
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 		})
