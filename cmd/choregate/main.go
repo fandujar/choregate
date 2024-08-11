@@ -118,13 +118,12 @@ func main() {
 				return
 			}
 
-			// write on local storage
 			http.SetCookie(w, &http.Cookie{
 				Name:     "jwt",
 				Value:    token,
 				HttpOnly: true,
-				SameSite: http.SameSiteStrictMode,
-				Secure:   true,
+				SameSite: http.SameSiteLaxMode,
+				Secure:   false,
 			})
 
 			http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -135,8 +134,8 @@ func main() {
 				Value:    "",
 				MaxAge:   -1,
 				HttpOnly: true,
-				SameSite: http.SameSiteStrictMode,
-				Secure:   true,
+				SameSite: http.SameSiteLaxMode,
+				Secure:   false,
 			})
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 		})
