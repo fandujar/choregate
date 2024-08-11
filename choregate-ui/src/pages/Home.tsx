@@ -5,14 +5,16 @@ import UserList from '../components/UserList'
 export const Home = () => {
   return (
         <>
-        <h1>Choregate</h1>
-        <div className="container" style={{ height: '100vh', width: '200vh', display: 'flex', flexDirection: 'row' }}>
+        <div className='bg-slate-950 text-slate-300 flex flex-col p-2'>
+        <h1 className='text-2xl text-pink-700 font-bold'>Choregate</h1>
+        <div className="flex">
           <div className="column" style={{ flex: 1 }}>
             <UserList />
           </div>
           <div className="column" style={{ flex: 1 }}>
             <TaskList />
           </div>
+        </div>
         </div>
         </>
     )
