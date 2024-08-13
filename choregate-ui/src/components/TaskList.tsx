@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import {createTask, getTasks} from '../services/taskApi'
+import {createTask, getTasks} from '@/services/taskApi'
 import Task from './Task'
 import TaskRunList from './TaskRunList'
 

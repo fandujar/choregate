@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import {getTaskRuns} from '../services/taskApi'
+import {getTaskRuns} from '@/services/taskApi'
 import TaskRun from './TaskRun'
 
 interface TaskRun {

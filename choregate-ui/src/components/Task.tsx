@@ -1,4 +1,4 @@
-import { addSteps, runTask } from "../services/taskApi"
+import { addSteps, runTask } from "@/services/taskApi"
 
 type TaskProps = {
     id: string

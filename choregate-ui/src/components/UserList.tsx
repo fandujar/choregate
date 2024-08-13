@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getUsers, createUser } from "../services/userApi";
+import { getUsers, createUser } from "@/services/userApi";
 
 type User = {
     id: string,
