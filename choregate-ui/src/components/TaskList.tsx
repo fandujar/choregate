@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import {createTask, getTasks} from '@/services/taskApi'
 import Task from './Task'
-import TaskRunList from './TaskRunList'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
+import { Button } from './ui/button'
 
 interface Task {
     id: string
@@ -21,26 +22,30 @@ export default function TaskList() {
     }, [update])
 
     return (
-        <div>
-            <h1>Tasks</h1>
-            <button onClick={() => {createTask(); setUpdate(true)}}>Create Task</button>
-            <ul>
+        <div className='flex-auto flex-col'>
+            <div className='flex'>
+            <h1 className='text-pink-700 text-xl'>Tasks</h1>
+            <Button 
+                className="ml-auto bg-pink-700 text-white"
+                onClick={() => {createTask(); setUpdate(true)}}
+            >
+                Create Task
+            </Button>
+            </div>
+            <Table className='mt-5'>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>ID</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
                 {tasks?.map((task: Task) => (
-                    <li key={task.id}>
-                        <Task 
-                            key={`task-${task.id}`}
-                            id={task.id}
-                            setUpdate={setUpdate}
-                        />
-                        <TaskRunList
-                            key={`taskrun-${task.id}`}
-                            taskID={task.id}
-                            update={update}
-                            setUpdate={setUpdate}
-                        />
-                    </li>
+                    <TableRow key={task.id}>
+                        <TableCell>{task.id}</TableCell>
+                    </TableRow>
                 ))}
-            </ul>
+                </TableBody>
+            </Table>
         </div>
     )
 }
