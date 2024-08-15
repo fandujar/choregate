@@ -14,8 +14,8 @@ import (
 
 // Task represents a task in the API.
 type Task struct {
-	ID    uuid.UUID `json:"id"`
-	Title string    `json:"title"`
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
 }
 
 // TaskHandler represents the HTTP handler for tasks.
@@ -71,8 +71,8 @@ func (h *TaskHandler) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	taskConfig := entities.TaskConfig{
-		ID:    task.ID,
-		Title: task.Title,
+		ID:   task.ID,
+		Name: task.Name,
 	}
 
 	t, err := entities.NewTask(&taskConfig)

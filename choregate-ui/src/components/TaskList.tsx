@@ -3,13 +3,15 @@ import {createTask, getTasks} from '@/services/taskApi'
 import Task from './Task'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 import { Button } from './ui/button'
+import { Link } from 'react-router-dom'
 
 interface Task {
     id: string
+    name: string
 }
 
 
-export default function TaskList() {
+export function TaskList() {
     const [tasks, setTasks] = useState<Task[]>([])
     const [update, setUpdate] = useState(true)
 
@@ -36,12 +38,16 @@ export default function TaskList() {
                 <TableHeader>
                     <TableRow>
                         <TableHead>ID</TableHead>
+                        <TableHead>Task name</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                 {tasks?.map((task: Task) => (
                     <TableRow key={task.id}>
-                        <TableCell>{task.id}</TableCell>
+                        <TableCell>
+                            <Link to={`/tasks/${task.id}`}>{task.id}</Link>
+                        </TableCell>
+                        <TableCell>{task.name}</TableCell>
                     </TableRow>
                 ))}
                 </TableBody>

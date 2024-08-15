@@ -1,14 +1,16 @@
 import { Header } from "@/components/Header"
 import { Menu } from "@/components/Menu"
-import { TaskList } from "@/components/TaskList"
+import { Task } from "@/components/Task"
 
-export const TasksPage = () => {
+// FIX: use react-router-dom way to get taskID
+export const TaskPage = ({taskID}) => {
+    console.log(taskID)
     return (
         <div>
             <Header/>
             <div className="flex">
                 <Menu />
-                <TaskList />
+                <Task id={taskID}/>
             </div>
         </div>
     )
