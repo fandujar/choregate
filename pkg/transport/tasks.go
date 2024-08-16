@@ -156,6 +156,24 @@ func (h *TaskHandler) UpdateStepsHandler(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusCreated)
 }
 
+// GetTaskStepsHandler handles the GET /tasks/{id}/steps endpoint.
+func (h *TaskHandler) GetTaskStepsHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	taskID := uuid.MustParse(id)
+	if taskID == uuid.Nil {
+		http.Error(w, "invalid task ID", http.StatusBadRequest)
+		return
+	}
+
+	task, err := h.service.FindByID(r.Context(), taskID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	json.NewEncoder(w).Encode(task.Steps)
+}
+
 // GetTaskRunsHandler handles the GET /tasks/{id}/runs endpoint.
 func (h *TaskHandler) GetTaskRunsHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
@@ -255,6 +273,7 @@ func RegisterTasksRoutes(r chi.Router, service services.TaskService) {
 	r.Post("/tasks/{id}/runs", handler.RunTaskHandler)
 	r.Get("/tasks/{id}/runs", handler.GetTaskRunsHandler)
 	r.Put("/tasks/{id}/steps", handler.UpdateStepsHandler)
+	r.Get("/tasks/{id}/steps", handler.GetTaskStepsHandler)
 	// TODO: implement task params handler
 	r.Put("/tasks/{id}/params", handler.FakeHandler)
 
