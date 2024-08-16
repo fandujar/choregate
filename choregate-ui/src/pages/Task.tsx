@@ -1,10 +1,11 @@
+import { useParams } from "react-router-dom"
 import { Header } from "@/components/Header"
 import { Menu } from "@/components/Menu"
 import { Task } from "@/components/Task"
 
-// FIX: use react-router-dom way to get taskID
-export const TaskPage = ({taskID}) => {
-    console.log(taskID)
+export const TaskPage = () => {
+    const { taskID } = useParams();
+    
     return (
         <div>
             <Header/>

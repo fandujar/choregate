@@ -8,12 +8,10 @@ interface TaskRun {
 
 type TaskRunListProps = {
     taskID: string
-    update: boolean
-    setUpdate: (update: boolean) => void
 }
 
 export default function TaskRunList(props: TaskRunListProps) {
-    const { taskID, update, setUpdate } = props
+    const { taskID } = props
     const [taskRuns, setTaskRuns] = useState<TaskRun[]>([])
 
     useEffect(() => {
@@ -21,8 +19,7 @@ export default function TaskRunList(props: TaskRunListProps) {
         tasksRuns.then((tasksRuns) => {
             setTaskRuns(tasksRuns)
         })
-        setUpdate(false)
-    }, [update])
+    }, [])
 
     return (
         <div>

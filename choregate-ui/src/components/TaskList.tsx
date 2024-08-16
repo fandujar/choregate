@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import {createTask, getTasks} from '@/services/taskApi'
-import Task from './Task'
+import { Task } from './Task'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 import { Button } from './ui/button'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 interface Task {
     id: string
@@ -13,23 +13,22 @@ interface Task {
 
 export function TaskList() {
     const [tasks, setTasks] = useState<Task[]>([])
-    const [update, setUpdate] = useState(true)
+    const navigate = useNavigate()
 
     useEffect(() => {
         const tasks = getTasks()
         tasks.then((tasks) => {
             setTasks(tasks)
         })
-        setUpdate(false)
-    }, [update])
+    }, [])
 
     return (
-        <div className='flex-auto flex-col'>
+        <div className='flex-auto h-screen p-10'>
             <div className='flex'>
             <h1 className='text-pink-700 text-xl'>Tasks</h1>
             <Button 
                 className="ml-auto bg-pink-700 text-white"
-                onClick={() => {createTask(); setUpdate(true)}}
+                onClick={() => {createTask()}}
             >
                 Create Task
             </Button>
@@ -43,10 +42,8 @@ export function TaskList() {
                 </TableHeader>
                 <TableBody>
                 {tasks?.map((task: Task) => (
-                    <TableRow key={task.id}>
-                        <TableCell>
-                            <Link to={`/tasks/${task.id}`}>{task.id}</Link>
-                        </TableCell>
+                    <TableRow key={task.id} onClick={() => navigate(`/tasks/${task.id}`)} role="button">
+                        <TableCell>{task.id}</TableCell>
                         <TableCell>{task.name}</TableCell>
                     </TableRow>
                 ))}

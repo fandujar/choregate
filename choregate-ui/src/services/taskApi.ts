@@ -13,8 +13,22 @@ const createTask = async () => {
   }
 }
 
-const getTask = () => {
+const getTask = async (taskID: string) => {
+  try {
+    const response = await api.get(`/tasks/${taskID}`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
 
+const getSteps = async (taskID: string) => {
+  try {
+    const response = await api.get(`/tasks/${taskID}/steps`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 const getTasks = async () => {
@@ -69,5 +83,6 @@ export {
   runTask,
   deleteTask,
   addSteps,
+  getSteps,
   getTaskRuns
 };

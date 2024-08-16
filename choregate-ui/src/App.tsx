@@ -5,7 +5,7 @@ import { AuthProvider } from './hooks/Auth';
 
 function App() {
   return (
-    <div className='p-2 bg-slate-300 text-slate-950 h-screen'>
+    <div className='bg-slate-200 text-slate-950 h-screen'>
     <BrowserRouter>
     <AuthProvider>
       <Router />
