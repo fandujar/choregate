@@ -74,6 +74,33 @@ const getTaskRuns = async (taskID: string) => {
   }
 }
 
+const getTaskRun = async (taskID: string, runID: string) => {
+  try {
+    const response = await api.get(`/tasks/${taskID}/runs/${runID}`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+const getTaskRunLogs = async (taskID: string, runID: string) => {
+  try {
+    const response = await api.get(`/tasks/${taskID}/runs/${runID}/logs`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+const getTaskRunStatus = async (taskID: string, runID: string) => {
+  try {
+    const response = await api.get(`/tasks/${taskID}/runs/${runID}/status`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 export {
   createTask,
   getTask,
@@ -82,5 +109,8 @@ export {
   deleteTask,
   addSteps,
   getSteps,
-  getTaskRuns
+  getTaskRuns,
+  getTaskRun,
+  getTaskRunLogs,
+  getTaskRunStatus
 };

@@ -13,14 +13,21 @@ type TaskProps = {
     id: string
 }
 
+type Task = {
+    id: string
+    name: string
+}
+
 export const Task = (props: TaskProps) => {
     const { id } = props
-    const [task, setTask] = useState({})
+    const [task, setTask] = useState<Task>({id: '', name: ''})
     const [update, setUpdate] = useState(false)
 
     useEffect(() => {
         let task = getTask(id)
-        setTask(task)
+        task.then((task) => {
+            setTask(task)
+        })
         setUpdate(false)
     }, [update])
     return (
