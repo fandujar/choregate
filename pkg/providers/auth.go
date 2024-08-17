@@ -1,42 +1,47 @@
 package providers
 
 import (
+	"context"
 	"errors"
 	"os"
+	"time"
 
+	"github.com/fandujar/choregate/pkg/services"
 	"github.com/go-chi/jwtauth/v5"
 )
 
 type AuthProvider interface {
 	// HandleLogin is a method that will be implemented by the auth provider
-	HandleLogin(username, password string) (string, error)
+	HandleLogin(ctx context.Context, username, password string) (string, error)
 	// ValidateToken is a method that will be implemented by the auth provider
-	ValidateToken(token string) (bool, error)
+	ValidateToken(ctx context.Context, token string) (bool, error)
 	// ValidateUserPassword is a method that will be implemented by the auth provider
-	ValidateUserPassword(username, password string) (role string, valid bool, err error)
+	ValidateUserPassword(ctx context.Context, username, password string) (role string, valid bool, err error)
 	// RefreshToken is a method that will be implemented by the auth provider
-	RefreshToken(token string) (string, error)
+	RefreshToken(ctx context.Context, token string) (string, error)
 	// GenerateToken is a method that will be implemented by the auth provider
-	GenerateToken(username, role string) (string, error)
+	GenerateToken(ctx context.Context, username, role string) (string, error)
 	// NewTokenAuth is a method that will be implemented by the auth provider
 	NewTokenAuth() *jwtauth.JWTAuth
 }
 
 // AuthProviderImpl is the default implementation of the AuthProvider interface
 type AuthProviderImpl struct {
-	JWTSecret string
-	JWTAuth   *jwtauth.JWTAuth
+	JWTSecret   string
+	JWTAuth     *jwtauth.JWTAuth
+	UserService *services.UserService
 }
 
 // NewAuthProvider creates a new AuthProvider
-func NewAuthProvider() (AuthProvider, error) {
+func NewAuthProvider(userService *services.UserService) (AuthProvider, error) {
 	secret := os.Getenv("CHOREGATE_JWT_SECRET")
 	if secret == "" {
 		return nil, errors.New("missing CHOREGATE_JWT_SECRET environment variable")
 	}
 
 	return &AuthProviderImpl{
-		JWTSecret: secret,
+		JWTSecret:   secret,
+		UserService: userService,
 	}, nil
 }
 
@@ -49,8 +54,8 @@ func (a *AuthProviderImpl) NewTokenAuth() *jwtauth.JWTAuth {
 }
 
 // HandleLogin is a method that will be implemented by the auth provider
-func (a *AuthProviderImpl) HandleLogin(username, password string) (string, error) {
-	role, valid, err := a.ValidateUserPassword(username, password)
+func (a *AuthProviderImpl) HandleLogin(ctx context.Context, username, password string) (string, error) {
+	role, valid, err := a.ValidateUserPassword(ctx, username, password)
 	if err != nil {
 		return "", err
 	}
@@ -66,35 +71,53 @@ func (a *AuthProviderImpl) HandleLogin(username, password string) (string, error
 }
 
 // ValidateToken is a method that will be implemented by the auth provider
-func (a *AuthProviderImpl) ValidateToken(token string) (bool, error) {
-	_, err := a.NewTokenAuth().Decode(token)
+func (a *AuthProviderImpl) ValidateToken(ctx context.Context, token string) (bool, error) {
+	t, err := a.NewTokenAuth().Decode(token)
 	if err != nil {
 		return false, err
+	}
+
+	if t.Expiration().Before(time.Now()) {
+		return false, nil
 	}
 
 	return true, nil
 }
 
 // ValidateUserPassword is a method that will be implemented by the auth provider
-func (a *AuthProviderImpl) ValidateUserPassword(username, password string) (role string, valid bool, err error) {
+func (a *AuthProviderImpl) ValidateUserPassword(ctx context.Context, username, password string) (role string, valid bool, err error) {
 	if username == "" || password == "" {
 		return "", false, nil
 	}
+	superUser, superUserPassword := os.Getenv("CHOREGATE_SUPERUSER"), os.Getenv("CHOREGATE_SUPERUSER_PASSWORD")
+	if username == superUser && password == superUserPassword {
+		return "superAdmin", true, nil
+	}
 
-	return "user", true, nil
+	user, err := a.UserService.GetUserByEmail(ctx, username)
+	if err != nil {
+		return "", false, err
+	}
+
+	if user.Password == password {
+		return user.Role, true, nil
+	}
+
+	return "", false, nil
 }
 
 // RefreshToken is a method that will be implemented by the auth provider
-func (a *AuthProviderImpl) RefreshToken(token string) (string, error) {
+func (a *AuthProviderImpl) RefreshToken(ctx context.Context, token string) (string, error) {
 	return "", nil
 }
 
 // GetToken is a method that will be implemented by the auth provider
-func (a *AuthProviderImpl) GenerateToken(username, role string) (string, error) {
+func (a *AuthProviderImpl) GenerateToken(ctx context.Context, username, role string) (string, error) {
 	_, token, err := a.NewTokenAuth().Encode(
 		map[string]interface{}{
 			"username": username,
 			"role":     role,
+			"exp":      time.Now().Add(time.Hour * 24).Unix(),
 		},
 	)
 	if err != nil {

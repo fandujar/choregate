@@ -153,3 +153,13 @@ func (s *TaskService) FindTaskRunLogs(ctx context.Context, taskID uuid.UUID, tas
 
 	return s.tektonClient.GetTaskRunLogs(ctx, taskRun.TaskRun)
 }
+
+// FindTaskRunStatus returns the status of a task run.
+func (s *TaskService) FindTaskRunStatus(ctx context.Context, taskID uuid.UUID, taskRunID uuid.UUID) (tekton.TaskRunStatus, error) {
+	taskRun, err := s.FindTaskRunByID(ctx, taskID, taskRunID)
+	if err != nil {
+		return taskRun.Status, err
+	}
+
+	return taskRun.Status, nil
+}
