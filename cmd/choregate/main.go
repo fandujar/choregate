@@ -1,6 +1,8 @@
 package main
 
 import (
+	"embed"
+	"encoding/json"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,10 +16,15 @@ import (
 	"github.com/fandujar/choregate/pkg/transport"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
+
+//go:embed index.html assets/*
+var choregateUIFS embed.FS
 
 func main() {
 	// Configure the logger level and format
@@ -41,6 +48,7 @@ func main() {
 	var userRepository repositories.UserRepository
 	var triggerRepository repositories.TriggerRepository
 	var teamRepository repositories.TeamRepository
+	var sessionsRepository repositories.SessionsRepository
 
 	if true {
 		// Create a memory repository
@@ -49,6 +57,7 @@ func main() {
 		userRepository = memory.NewInMemoryUserRepository()
 		triggerRepository = memory.NewInMemoryTriggerRepository()
 		teamRepository = memory.NewInMemoryTeamRepository()
+		sessionsRepository = memory.NewInMemorySessionsRepository()
 	}
 
 	// Print the type of each repository being used
@@ -56,6 +65,7 @@ func main() {
 	log.Debug().Msgf("type of userRepository: %T", userRepository)
 	log.Debug().Msgf("type of triggerRepository: %T", triggerRepository)
 	log.Debug().Msgf("type of teamRepository: %T", teamRepository)
+	log.Debug().Msgf("type of sessionsRepository: %T", sessionsRepository)
 
 	// Initialize tekton client
 	tektonClient, err := providers.NewTektonClient()
@@ -66,10 +76,73 @@ func main() {
 	// Create services
 	taskService := services.NewTaskService(taskRepository, taskRunRepository, tektonClient)
 	triggerService := services.NewTriggerService(triggerRepository)
+	userService := services.NewUserService(userRepository)
+
+	// Create the auth provider
+	authProvider, err := providers.NewAuthProvider()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create auth provider")
+	}
+	tokenAuth := authProvider.NewTokenAuth()
+
+	// Serve the UI
+	r.Route("/", func(r chi.Router) {
+		r.Use(
+			CustomLogger(),
+			middleware.RequestID,
+			middleware.RealIP,
+			middleware.Recoverer,
+		)
+		r.Handle("/*", http.FileServer(http.FS(choregateUIFS)))
+	})
+
+	// Handle login
+	r.Route("/user", func(r chi.Router) {
+		r.Use(
+			CustomLogger(),
+			middleware.RequestID,
+			middleware.RealIP,
+			middleware.Recoverer,
+		)
+		r.Post("/login", func(w http.ResponseWriter, r *http.Request) {
+			err := r.ParseForm()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			token, err := authProvider.HandleLogin(
+				r.FormValue("username"),
+				r.FormValue("password"),
+			)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusUnauthorized)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]string{
+				"token": token,
+			})
+		})
+		// r.Post("/logout", func(w http.ResponseWriter, r *http.Request) {
+
+		// })
+	})
 
 	// Register the routes
-	transport.RegisterTasksRoutes(r, *taskService)
-	transport.RegisterTriggersRoutes(r, *triggerService)
+	r.Route("/api", func(r chi.Router) {
+		r.Use(
+			CustomLogger(),
+			middleware.RequestID,
+			jwtauth.Verifier(tokenAuth),
+			jwtauth.Authenticator(tokenAuth),
+			middleware.RealIP,
+			middleware.Recoverer,
+		)
+		transport.RegisterTasksRoutes(r, *taskService)
+		transport.RegisterTriggersRoutes(r, *triggerService)
+		transport.RegisterUsersRoutes(r, *userService)
+	})
 
 	// Prepare to handle signals
 	// Start the HTTP server
@@ -98,4 +171,24 @@ func main() {
 	// Wait for a signal
 	<-shutdown
 	log.Info().Msg("shutting down server")
+}
+
+func CustomLogger() func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+			t1 := time.Now()
+			defer func() {
+				t2 := time.Now()
+				log.Info().Msgf(
+					"%s - url: %s - from: %s - %d - %d in %s",
+					r.Method, r.URL, r.RemoteAddr, ww.Status(), ww.BytesWritten(), t2.Sub(t1),
+				)
+
+			}()
+
+			next.ServeHTTP(ww, r)
+		}
+		return http.HandlerFunc(fn)
+	}
 }

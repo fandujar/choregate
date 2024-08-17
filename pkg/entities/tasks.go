@@ -10,7 +10,7 @@ import (
 
 type TaskConfig struct {
 	ID          uuid.UUID          `json:"id"`
-	Title       string             `json:"title"`
+	Name        string             `json:"name"`
 	Namespace   string             `json:"namespace"`
 	Description string             `json:"description"`
 	Timeout     time.Duration      `json:"timeout"`

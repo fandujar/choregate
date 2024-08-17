@@ -40,8 +40,12 @@ dist-ssr
 # vendor/
 
 # Ignore for react project
-cmd/choregate/ui/dist
+cmd/choregate/index.html
+cmd/choregate/assets/
 ui/node_modules
+
+#Ignore binary
+cmd/choregate/choregate
 
 #Ignore air temp files
 temp/

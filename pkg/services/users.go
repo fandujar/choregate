@@ -16,6 +16,15 @@ func NewUserService(repo repositories.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
+// FindAll returns all users
+func (s *UserService) FindAll(ctx context.Context) ([]*entities.User, error) {
+	users, err := s.repo.FindAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func (s *UserService) GetUser(ctx context.Context, id uuid.UUID) (*entities.User, error) {
 	user, err := s.repo.FindByID(ctx, id)
 	if err != nil {
