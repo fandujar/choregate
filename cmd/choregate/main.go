@@ -111,6 +111,7 @@ func main() {
 				return
 			}
 			token, err := authProvider.HandleLogin(
+				r.Context(),
 				r.FormValue("username"),
 				r.FormValue("password"),
 			)
