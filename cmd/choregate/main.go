@@ -9,7 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/fandujar/choregate/pkg/providers"
+	"github.com/fandujar/choregate/pkg/providers/auth"
+	"github.com/fandujar/choregate/pkg/providers/tektoncd"
 	"github.com/fandujar/choregate/pkg/repositories"
 	"github.com/fandujar/choregate/pkg/repositories/memory"
 	"github.com/fandujar/choregate/pkg/services"
@@ -68,7 +69,7 @@ func main() {
 	log.Debug().Msgf("type of sessionsRepository: %T", sessionsRepository)
 
 	// Initialize tekton client
-	tektonClient, err := providers.NewTektonClient()
+	tektonClient, err := tektoncd.NewTektonClient()
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create Tekton client")
 	}
@@ -79,7 +80,7 @@ func main() {
 	userService := services.NewUserService(userRepository)
 
 	// Create the auth provider
-	authProvider, err := providers.NewAuthProvider()
+	authProvider, err := auth.NewAuthProvider(userService)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create auth provider")
 	}

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/fandujar/choregate/pkg/entities"
-	"github.com/fandujar/choregate/pkg/providers"
+	"github.com/fandujar/choregate/pkg/providers/tektoncd"
 	"github.com/fandujar/choregate/pkg/repositories"
 	"github.com/fandujar/choregate/pkg/utils"
 	"github.com/google/uuid"
@@ -18,11 +18,11 @@ import (
 type TaskService struct {
 	taskRepo     repositories.TaskRepository
 	taskRunRepo  repositories.TaskRunRepository
-	tektonClient providers.TektonClient
+	tektonClient tektoncd.TektonClient
 }
 
 // NewTaskService creates a new TaskService.
-func NewTaskService(taskRepo repositories.TaskRepository, taskRunRepo repositories.TaskRunRepository, tektonClient providers.TektonClient) *TaskService {
+func NewTaskService(taskRepo repositories.TaskRepository, taskRunRepo repositories.TaskRunRepository, tektonClient tektoncd.TektonClient) *TaskService {
 	return &TaskService{
 		taskRepo:     taskRepo,
 		taskRunRepo:  taskRunRepo,
