@@ -1,4 +1,4 @@
-package providers
+package auth
 
 import (
 	"context"
@@ -62,7 +62,7 @@ func (a *AuthProviderImpl) HandleLogin(ctx context.Context, username, password s
 	if !valid {
 		return "", errors.New("invalid username or password")
 	}
-	token, err := a.GenerateToken(username, role)
+	token, err := a.GenerateToken(ctx, username, role)
 	if err != nil {
 		return "", err
 	}
