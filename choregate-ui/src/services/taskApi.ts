@@ -54,9 +54,8 @@ const deleteTask = () => {
 
 }
 
-const addSteps = async (taskID: string) => {
+const addSteps = async (taskID: string, data: any) => {
   try {
-    const data = [{"image": "ubuntu", "command": ["echo", "mock"]}];
     const response = await api.put(`/tasks/${taskID}/steps`, data);
     return response.data;
   } catch (error) {

@@ -1,11 +1,11 @@
 import { useState } from "react"
-import { addSteps, runTask, getTask } from "@/services/taskApi"
+import { runTask, getTask } from "@/services/taskApi"
 import { Button } from "./ui/button"
 import { useEffect } from "react"
 import { Card, CardContent } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 
-import { Steps } from "./Steps"
+import { Steps, EditSteps } from "./Steps"
 import { TaskRuns } from "./TaskRuns"
 
 
@@ -18,9 +18,17 @@ type Task = {
     name: string
 }
 
+type Step = {
+    name: string;
+    image: string;
+    command: string;
+    computeResources: string;
+  }
+
 export const Task = (props: TaskProps) => {
     const { id } = props
     const [task, setTask] = useState<Task>({id: '', name: ''})
+    const [steps, setSteps] = useState<Step[]>([]);
     const [update, setUpdate] = useState(false)
 
     useEffect(() => {
@@ -30,11 +38,14 @@ export const Task = (props: TaskProps) => {
         })
         setUpdate(false)
     }, [update])
+
     return (
         <section className="flex-auto m-5">
             <div className="flex">
                 <h2 className="text-xl font-semibold mb-4">Task</h2>
-                <Button className="ml-auto bg-pink-700 text-white" onClick={() => {addSteps(id); setUpdate(true);}}>Add Steps</Button>
+                <div className="ml-auto">
+                    <EditSteps taskID={id} steps={steps} setSteps={setSteps} setUpdate={setUpdate}/>
+                </div>
                 <Button className="ml-2 bg-pink-700 text-white" onClick={() => {runTask(id);setUpdate(true);}}>Run Task</Button>
             </div>
             <Card className="mb-4">
@@ -56,7 +67,7 @@ export const Task = (props: TaskProps) => {
                 </CardContent>
             </Card>
             <h2 className="text-xl font-semibold mb-4">Steps</h2>
-            <Steps taskID={id} update={update} setUpdate={setUpdate}/>
+            <Steps taskID={id} update={update} setUpdate={setUpdate} steps={steps} setSteps={setSteps}/>
             <h2 className="text-xl font-semibold mb-4">Runs</h2>
             <TaskRuns taskID={id} update={update} setUpdate={setUpdate}/>
         </section>
