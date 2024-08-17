@@ -43,7 +43,6 @@ const getTasks = async () => {
 const runTask = async (taskID: string) => {
   try {
     const response = await api.post(`/tasks/${taskID}/runs`);
-    console.log(response);
     return response.data;
   } catch (error) {
     console.error(error);
@@ -59,7 +58,6 @@ const addSteps = async (taskID: string) => {
   try {
     const data = [{"image": "ubuntu", "command": ["echo", "mock"]}];
     const response = await api.put(`/tasks/${taskID}/steps`, data);
-    console.log(response);
     return response.data;
   } catch (error) {
     console.error(error);

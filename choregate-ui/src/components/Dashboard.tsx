@@ -1,7 +1,9 @@
 export const Dashboard = () => {
     return (
-        <div className="flex m-5">
-            <h1>Dashboard Component</h1>
-        </div>
+        <section className="flex-auto m-5">
+            <div className="flex">
+                <h2 className="text-xl font-semibold mb-4">Dashboard</h2>
+            </div>
+        </section>
     )
 }

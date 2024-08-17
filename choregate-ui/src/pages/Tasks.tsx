@@ -1,6 +1,6 @@
 import { Header } from "@/components/Header"
 import { Menu } from "@/components/Menu"
-import { TaskList } from "@/components/TaskList"
+import { Tasks } from "@/components/Tasks"
 
 export const TasksPage = () => {
     return (
@@ -8,7 +8,7 @@ export const TasksPage = () => {
             <Header/>
             <div className="flex">
                 <Menu />
-                <TaskList />
+                <Tasks />
             </div>
         </div>
     )
