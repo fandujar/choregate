@@ -1,12 +1,14 @@
-import { useState } from "react"
-import { addSteps, runTask, getTask } from "@/services/taskApi"
-import { Button } from "./ui/button"
+import { getTask } from "@/services/taskApi"
 import { useEffect } from "react"
 import { Card, CardContent } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 
 import { Steps } from "./Steps"
-import { TaskRuns } from "./TaskRuns"
+import { StepAdd } from "./StepAdd"
+import { TaskRuns, RunTask } from "./TaskRuns"
+import { TaskUpdateAtom } from "@/atoms/Update";
+import { TaskAtom } from "@/atoms/Tasks";
+import { useRecoilState } from "recoil";
 
 
 type TaskProps = {
@@ -15,20 +17,27 @@ type TaskProps = {
 
 export const Task = (props: TaskProps) => {
     const { id } = props
-    const [task, setTask] = useState({})
-    const [update, setUpdate] = useState(false)
+    const [task, setTask] = useRecoilState(TaskAtom)
+    const [update, setUpdate] = useRecoilState(TaskUpdateAtom)
 
     useEffect(() => {
         let task = getTask(id)
-        setTask(task)
+        task.then((task) => {
+            setTask(task)
+        })
         setUpdate(false)
     }, [update])
+
     return (
         <section className="flex-auto m-5">
             <div className="flex">
                 <h2 className="text-xl font-semibold mb-4">Task</h2>
-                <Button className="ml-auto bg-pink-700 text-white" onClick={() => {addSteps(id); setUpdate(true);}}>Add Steps</Button>
-                <Button className="ml-2 bg-pink-700 text-white" onClick={() => {runTask(id);setUpdate(true);}}>Run Task</Button>
+                <div className="ml-auto">
+                    <StepAdd taskID={id}/>
+                </div>
+                <div className="ml-2">
+                    <RunTask taskID={id}/>
+                </div>
             </div>
             <Card className="mb-4">
                 <CardContent className="flex justify-between items-center">
@@ -49,9 +58,9 @@ export const Task = (props: TaskProps) => {
                 </CardContent>
             </Card>
             <h2 className="text-xl font-semibold mb-4">Steps</h2>
-            <Steps taskID={id} update={update} setUpdate={setUpdate}/>
+            <Steps taskID={id}/>
             <h2 className="text-xl font-semibold mb-4">Runs</h2>
-            <TaskRuns taskID={id} update={update} setUpdate={setUpdate}/>
+            <TaskRuns taskID={id}/>
         </section>
     )
 }

@@ -1,10 +1,12 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRecoilState } from 'recoil';
+import { User } from '@/atoms/User';
 
 const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [user, setUser] = useState({});
+    const [user, setUser] = useRecoilState(User);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -17,8 +19,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     }, [setUser]);
 
+    const login = (data: any) => {
+        localStorage.setItem('jwt', data.token);
+        navigate('/');
+    }
+
+    const logout = () => {
+        localStorage.removeItem('jwt');
+        navigate('/login');
+    }
+
+    const value = useMemo(() => ({ user, login, logout }), [user]);
+
     return (
-        <AuthContext.Provider value={user}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/fandujar/choregate/pkg/entities"
-	"github.com/fandujar/choregate/pkg/providers"
+	"github.com/fandujar/choregate/pkg/providers/tektoncd"
 	"github.com/fandujar/choregate/pkg/repositories"
 	"github.com/fandujar/choregate/pkg/utils"
 	"github.com/google/uuid"
@@ -18,11 +18,11 @@ import (
 type TaskService struct {
 	taskRepo     repositories.TaskRepository
 	taskRunRepo  repositories.TaskRunRepository
-	tektonClient providers.TektonClient
+	tektonClient tektoncd.TektonClient
 }
 
 // NewTaskService creates a new TaskService.
-func NewTaskService(taskRepo repositories.TaskRepository, taskRunRepo repositories.TaskRunRepository, tektonClient providers.TektonClient) *TaskService {
+func NewTaskService(taskRepo repositories.TaskRepository, taskRunRepo repositories.TaskRunRepository, tektonClient tektoncd.TektonClient) *TaskService {
 	return &TaskService{
 		taskRepo:     taskRepo,
 		taskRunRepo:  taskRunRepo,
@@ -152,4 +152,14 @@ func (s *TaskService) FindTaskRunLogs(ctx context.Context, taskID uuid.UUID, tas
 	}
 
 	return s.tektonClient.GetTaskRunLogs(ctx, taskRun.TaskRun)
+}
+
+// FindTaskRunStatus returns the status of a task run.
+func (s *TaskService) FindTaskRunStatus(ctx context.Context, taskID uuid.UUID, taskRunID uuid.UUID) (tekton.TaskRunStatus, error) {
+	taskRun, err := s.FindTaskRunByID(ctx, taskID, taskRunID)
+	if err != nil {
+		return taskRun.Status, err
+	}
+
+	return taskRun.Status, nil
 }

@@ -54,9 +54,8 @@ const deleteTask = () => {
 
 }
 
-const addSteps = async (taskID: string) => {
+const updateSteps = async (taskID: string, data: any) => {
   try {
-    const data = [{"image": "ubuntu", "command": ["echo", "mock"]}];
     const response = await api.put(`/tasks/${taskID}/steps`, data);
     return response.data;
   } catch (error) {
@@ -74,13 +73,43 @@ const getTaskRuns = async (taskID: string) => {
   }
 }
 
+const getTaskRun = async (taskID: string, runID: string) => {
+  try {
+    const response = await api.get(`/tasks/${taskID}/runs/${runID}`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+const getTaskRunLogs = async (taskID: string, runID: string) => {
+  try {
+    const response = await api.get(`/tasks/${taskID}/runs/${runID}/logs`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+const getTaskRunStatus = async (taskID: string, runID: string) => {
+  try {
+    const response = await api.get(`/tasks/${taskID}/runs/${runID}/status`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 export {
   createTask,
   getTask,
   getTasks,
   runTask,
   deleteTask,
-  addSteps,
+  updateSteps,
   getSteps,
-  getTaskRuns
+  getTaskRuns,
+  getTaskRun,
+  getTaskRunLogs,
+  getTaskRunStatus
 };
