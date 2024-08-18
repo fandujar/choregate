@@ -106,7 +106,7 @@ const TaskRunsLogs = (props: TaskRunsLogsProps) => {
                     <SheetTitle>Task Run Logs</SheetTitle>
                     <SheetDescription>logs from the task execution</SheetDescription>
                 </SheetHeader>
-                <ScrollArea className='h-full w-full overflow-x-auto'>
+                <ScrollArea className='h-full w-full'>
                     <pre>
                         {taskRunLogs}
                     </pre>

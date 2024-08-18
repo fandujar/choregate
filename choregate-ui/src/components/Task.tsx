@@ -3,7 +3,8 @@ import { useEffect } from "react"
 import { Card, CardContent } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 
-import { Steps, AddStep } from "./Steps"
+import { Steps } from "./Steps"
+import { StepAdd } from "./StepAdd"
 import { TaskRuns, RunTask } from "./TaskRuns"
 import { TaskUpdateAtom } from "@/atoms/Update";
 import { TaskAtom } from "@/atoms/Tasks";
@@ -32,7 +33,7 @@ export const Task = (props: TaskProps) => {
             <div className="flex">
                 <h2 className="text-xl font-semibold mb-4">Task</h2>
                 <div className="ml-auto">
-                    <AddStep taskID={id}/>
+                    <StepAdd taskID={id}/>
                 </div>
                 <div className="ml-2">
                     <RunTask taskID={id}/>
