@@ -1,11 +1,10 @@
-import { runTask, getTask } from "@/services/taskApi"
-import { Button } from "./ui/button"
+import { getTask } from "@/services/taskApi"
 import { useEffect } from "react"
 import { Card, CardContent } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 
 import { Steps, AddStep } from "./Steps"
-import { TaskRuns } from "./TaskRuns"
+import { TaskRuns, RunTask } from "./TaskRuns"
 import { TaskUpdateAtom } from "@/atoms/Update";
 import { TaskAtom } from "@/atoms/Tasks";
 import { useRecoilState } from "recoil";
@@ -35,7 +34,9 @@ export const Task = (props: TaskProps) => {
                 <div className="ml-auto">
                     <AddStep taskID={id}/>
                 </div>
-                <Button className="ml-2 bg-pink-700 text-white" onClick={() => {runTask(id);setUpdate(true);}}>Run Task</Button>
+                <div className="ml-2">
+                    <RunTask taskID={id}/>
+                </div>
             </div>
             <Card className="mb-4">
                 <CardContent className="flex justify-between items-center">

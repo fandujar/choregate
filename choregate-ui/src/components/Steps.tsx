@@ -4,14 +4,17 @@ import { Card, CardContent } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 import { Dialog, DialogClose, DialogTrigger, DialogHeader, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
 import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button"
 import { updateSteps } from "@/services/taskApi"
 import { useRecoilState } from "recoil";
 
-import { TaskUpdateAtom } from "@/atoms/Update";
+import { StepsUpdateAtom } from "@/atoms/Update";
 import { StepsAtom, StepAtom } from "@/atoms/Tasks";
 import { Step } from "@/types/Task";
+
+import { SquarePen, Trash2 } from 'lucide-react';
 
 type StepsProps = {
   taskID: string;
@@ -20,7 +23,7 @@ type StepsProps = {
 export const Steps = (props: StepsProps) => {
     const { taskID } = props;
     const [steps, setSteps] = useRecoilState(StepsAtom);
-    const [update, setUpdate] = useRecoilState(TaskUpdateAtom)
+    const [update, setUpdate] = useRecoilState(StepsUpdateAtom)
 
     useEffect(() => {
       const steps = getSteps(taskID);
@@ -29,6 +32,10 @@ export const Steps = (props: StepsProps) => {
       });
       setUpdate(false);
     }, [update]);
+
+    const handleDeleteStep = (index) => {
+      
+    } 
 
     return (
       <div className="space-y-4">
@@ -41,17 +48,28 @@ export const Steps = (props: StepsProps) => {
                       <TableHead>Step name</TableHead>
                       <TableHead>Image</TableHead>
                       <TableHead>Compute Resources</TableHead>
-                      <TableHead>Commands</TableHead>
+                      <TableHead>Script</TableHead>
+                      <TableHead>Edit/Delete</TableHead>
                   </TableRow>
               </TableHeader>
               <TableBody>
               {steps?.map((step: Step, index) => (
-                  <TableRow key={index} role="button">
+                  <TableRow key={index}>
                       <TableCell>{index}</TableCell>
                       <TableCell>{step.name || "unamed step"}</TableCell>
                       <TableCell>{step.image}</TableCell>
                       <TableCell>{JSON.stringify(step.computeResources) || "None"}</TableCell>
-                      <TableCell>{step?.command?.join(' ')}</TableCell>
+                      <TableCell>{step?.script}</TableCell>
+                      <TableCell>
+                        <div className="flex">
+                          <Button>
+                            <SquarePen/>
+                          </Button>
+                          <Button type="submit" onClick={handleDeleteStep(index)}>
+                            <Trash2/>
+                          </Button>
+                        </div>
+                      </TableCell>
                   </TableRow>
               ))}
               </TableBody>
@@ -70,7 +88,7 @@ type AddStepProps = {
 export const AddStep = (props: AddStepProps) => {
   const { taskID } = props;
   const [steps, setSteps] = useRecoilState(StepsAtom);
-  const [update, setUpdate] = useRecoilState(TaskUpdateAtom)
+  const [update, setUpdate] = useRecoilState(StepsUpdateAtom)
   const [step, setStep] = useRecoilState(StepAtom);
 
   useEffect(() => {
@@ -82,7 +100,7 @@ export const AddStep = (props: AddStepProps) => {
   }, [update]);
 
   useEffect(() => {
-    setStep({name: '', image: 'ubuntu', command: 'echo "Hello, World!"'})
+    setStep({name: '', image: 'ubuntu', script: 'echo "Hello, World!"'})
   }, [])
 
   const handleEditSteps = (e: any) => {
@@ -91,7 +109,7 @@ export const AddStep = (props: AddStepProps) => {
     let data = [...steps,{
       name: step.name,
       image: step.image,
-      command: step.command.split(' ')
+      script: step.script
     }]
 
     updateSteps(taskID, data).then(() => {
@@ -122,7 +140,7 @@ export const AddStep = (props: AddStepProps) => {
                   defaultValue="unamed"
                   className="col-span-3"
                   value={step.name}
-                  onChange={(e) => setStep({name: e.target.value, image: step.image, command: step.command})}
+                  onChange={(e) => setStep({name: e.target.value, image: step.image, script: step.script})}
               />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -134,19 +152,19 @@ export const AddStep = (props: AddStepProps) => {
                   defaultValue="ubuntu"
                   className="col-span-3"
                   value={step.image}
-                  onChange={(e) => setStep({name: step.name, image: e.target.value, command: step.command})}
+                  onChange={(e) => setStep({name: step.name, image: e.target.value, script: step.script})}
               />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="command" className="text-right">
-                  Command
+              <Label htmlFor="script" className="text-right">
+                  Script
               </Label>
-              <Input
-                  id="command"
+              <Textarea
+                  id="script"
                   defaultValue="echo 'Hello, World!'"
-                  value={step.command}
+                  value={step.script}
                   className="col-span-3"
-                  onChange={(e) => setStep({name: step.name, image: step.image, command: e.target.value})}
+                  onChange={(e) => setStep({name: step.name, image: step.image, script: e.target.value})}
               />
           </div>
           </div>

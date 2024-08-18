@@ -1,14 +1,15 @@
 import { useEffect } from 'react'
-import { getTaskRuns, getTaskRunStatus, getTaskRunLogs } from '@/services/taskApi'
+import { getTaskRuns, getTaskRunStatus, getTaskRunLogs, runTask } from '@/services/taskApi'
 import { Card, CardContent } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 import { Button } from './ui/button'
 import { useRecoilState } from 'recoil';
-import { TaskUpdateAtom } from '@/atoms/Update';
+import { TaskRunsUpdateAtom } from '@/atoms/Update';
 import { TaskRunsAtom } from '@/atoms/Tasks';
 import { TaskRunLogsAtom } from '@/atoms/Tasks';
 import { TaskRun } from '@/types/Task';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
+import { ScrollArea } from './ui/scroll-area';
 
 type TaskRunListProps = {
     taskID: string
@@ -17,7 +18,7 @@ type TaskRunListProps = {
 export function TaskRuns(props: TaskRunListProps) {
     const { taskID } = props
     const [taskRuns, setTaskRuns] = useRecoilState(TaskRunsAtom)
-    const [update, setUpdate] = useRecoilState(TaskUpdateAtom)
+    const [update, setUpdate] = useRecoilState(TaskRunsUpdateAtom)
 
     useEffect(() => {
         const response = getTaskRuns(taskID)
@@ -64,6 +65,21 @@ export function TaskRuns(props: TaskRunListProps) {
     )
 }
 
+type RunTaskProps = {
+    taskID: string
+}
+
+export const RunTask = (props: RunTaskProps) => {
+    const { taskID } = props
+    const [update, setUpdate] = useRecoilState(TaskRunsUpdateAtom)
+
+    return (
+        <Button className="bg-pink-700 text-white" onClick={() => {runTask(taskID);setUpdate(true);}}>
+            Run Task
+        </Button>
+    )
+}
+
 type TaskRunsLogsProps = {
     taskID: string
     taskRunID: string
@@ -72,22 +88,12 @@ type TaskRunsLogsProps = {
 const TaskRunsLogs = (props: TaskRunsLogsProps) => {
     const { taskID, taskRunID } = props
     const [taskRunLogs, setTaskRunLogs] = useRecoilState(TaskRunLogsAtom)
-    const [update, setUpdate] = useRecoilState(TaskUpdateAtom)
-
-    useEffect(() => {
-        let response = getTaskRunLogs(taskID, taskRunID)
-        response.then((logs) => {
-            setTaskRunLogs(logs)
-        })
-        setUpdate(false)
-    }, [])
 
     const handleViewLogs = () => {
         let response = getTaskRunLogs(taskID, taskRunID)
         response.then((logs) => {
             setTaskRunLogs(logs)
         })
-        setUpdate(false)
     }
 
     return (
@@ -95,17 +101,16 @@ const TaskRunsLogs = (props: TaskRunsLogsProps) => {
             <SheetTrigger>
                 <Button onClick={handleViewLogs}>View Logs</Button>
             </SheetTrigger>
-            <SheetContent>
+            <SheetContent className="w-[400px] sm:w-[540px] sm:max-w-[540px]">
                 <SheetHeader>
                     <SheetTitle>Task Run Logs</SheetTitle>
                     <SheetDescription>logs from the task execution</SheetDescription>
                 </SheetHeader>
-
-                <pre>
-                    {taskRunLogs}
-                </pre>
-
-
+                <ScrollArea className='h-full w-full overflow-x-auto'>
+                    <pre>
+                        {taskRunLogs}
+                    </pre>
+                </ScrollArea>
                 <SheetFooter>
                     <SheetClose asChild>
                         <Button type="submit">Close</Button>
