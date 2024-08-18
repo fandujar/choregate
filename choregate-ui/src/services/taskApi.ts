@@ -54,7 +54,7 @@ const deleteTask = () => {
 
 }
 
-const addSteps = async (taskID: string, data: any) => {
+const updateSteps = async (taskID: string, data: any) => {
   try {
     const response = await api.put(`/tasks/${taskID}/steps`, data);
     return response.data;
@@ -106,7 +106,7 @@ export {
   getTasks,
   runTask,
   deleteTask,
-  addSteps,
+  updateSteps,
   getSteps,
   getTaskRuns,
   getTaskRun,

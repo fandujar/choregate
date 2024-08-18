@@ -1,35 +1,24 @@
-import { useState } from "react"
 import { runTask, getTask } from "@/services/taskApi"
 import { Button } from "./ui/button"
 import { useEffect } from "react"
 import { Card, CardContent } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 
-import { Steps, EditSteps } from "./Steps"
+import { Steps, AddStep } from "./Steps"
 import { TaskRuns } from "./TaskRuns"
+import { TaskUpdateAtom } from "@/atoms/Update";
+import { TaskAtom } from "@/atoms/Tasks";
+import { useRecoilState } from "recoil";
 
 
 type TaskProps = {
     id: string
 }
 
-type Task = {
-    id: string
-    name: string
-}
-
-type Step = {
-    name: string;
-    image: string;
-    command: string;
-    computeResources: string;
-  }
-
 export const Task = (props: TaskProps) => {
     const { id } = props
-    const [task, setTask] = useState<Task>({id: '', name: ''})
-    const [steps, setSteps] = useState<Step[]>([]);
-    const [update, setUpdate] = useState(false)
+    const [task, setTask] = useRecoilState(TaskAtom)
+    const [update, setUpdate] = useRecoilState(TaskUpdateAtom)
 
     useEffect(() => {
         let task = getTask(id)
@@ -44,7 +33,7 @@ export const Task = (props: TaskProps) => {
             <div className="flex">
                 <h2 className="text-xl font-semibold mb-4">Task</h2>
                 <div className="ml-auto">
-                    <EditSteps taskID={id} steps={steps} setSteps={setSteps} setUpdate={setUpdate}/>
+                    <AddStep taskID={id}/>
                 </div>
                 <Button className="ml-2 bg-pink-700 text-white" onClick={() => {runTask(id);setUpdate(true);}}>Run Task</Button>
             </div>
@@ -67,9 +56,9 @@ export const Task = (props: TaskProps) => {
                 </CardContent>
             </Card>
             <h2 className="text-xl font-semibold mb-4">Steps</h2>
-            <Steps taskID={id} update={update} setUpdate={setUpdate} steps={steps} setSteps={setSteps}/>
+            <Steps taskID={id}/>
             <h2 className="text-xl font-semibold mb-4">Runs</h2>
-            <TaskRuns taskID={id} update={update} setUpdate={setUpdate}/>
+            <TaskRuns taskID={id}/>
         </section>
     )
 }

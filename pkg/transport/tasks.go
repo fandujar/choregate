@@ -171,6 +171,10 @@ func (h *TaskHandler) GetTaskStepsHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if task.Steps == nil {
+		task.Steps = []tekton.Step{}
+	}
+
 	json.NewEncoder(w).Encode(task.Steps)
 }
 
@@ -188,6 +192,10 @@ func (h *TaskHandler) GetTaskRunsHandler(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	if taskRuns == nil {
+		taskRuns = []*entities.TaskRun{}
 	}
 
 	json.NewEncoder(w).Encode(taskRuns)

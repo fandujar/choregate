@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { getSteps } from "@/services/taskApi";
 import { Card, CardContent } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
@@ -6,20 +6,21 @@ import { Dialog, DialogClose, DialogTrigger, DialogHeader, DialogContent, Dialog
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button"
-import { addSteps } from "@/services/taskApi"
+import { updateSteps } from "@/services/taskApi"
+import { useRecoilState } from "recoil";
+
+import { TaskUpdateAtom } from "@/atoms/Update";
+import { StepsAtom, StepAtom } from "@/atoms/Tasks";
+import { Step } from "@/types/Task";
 
 type StepsProps = {
   taskID: string;
-  update: boolean;
-  setUpdate: Function;
-  steps: Step[];
-  setSteps: Function;
 };
 
 export const Steps = (props: StepsProps) => {
     const { taskID } = props;
-    const { update, setUpdate } = props;
-    const { steps, setSteps } = props;
+    const [steps, setSteps] = useRecoilState(StepsAtom);
+    const [update, setUpdate] = useRecoilState(TaskUpdateAtom)
 
     useEffect(() => {
       const steps = getSteps(taskID);
@@ -61,39 +62,39 @@ export const Steps = (props: StepsProps) => {
     );
 };
 
-type EditStepsProps = {
+type AddStepProps = {
   taskID: string;
-  steps: Step[];
-  setSteps: Function;
-  setUpdate: Function;
 };
 
 
-export const EditSteps = (props: EditStepsProps) => {
+export const AddStep = (props: AddStepProps) => {
   const { taskID } = props;
-  const { steps, setSteps } = props;
-  // TODO remove this once state is properly managed
-  const [step, setStep] = useState<Step>({name: '', image: '', command: '', computeResources: ''});
-  const { setUpdate } = props;
+  const [steps, setSteps] = useRecoilState(StepsAtom);
+  const [update, setUpdate] = useRecoilState(TaskUpdateAtom)
+  const [step, setStep] = useRecoilState(StepAtom);
 
   useEffect(() => {
-    const steps = getSteps(taskID);
-    steps.then((steps) => {
+    let response = getSteps(taskID);
+    response.then((steps) => {
       setSteps(steps);
-      setStep(steps[0]);
     });
     setUpdate(false);
-  }, []);
+  }, [update]);
+
+  useEffect(() => {
+    setStep({name: '', image: 'ubuntu', command: 'echo "Hello, World!"'})
+  }, [])
 
   const handleEditSteps = (e: any) => {
     e.preventDefault()
-    const data = [{
-            name: step.name,
-            image: step.image,
-            command: step.command.split(' '),
-        }]
 
-    addSteps(taskID, data).then(() => {
+    let data = [...steps,{
+      name: step.name,
+      image: step.image,
+      command: step.command.split(' ')
+    }]
+
+    updateSteps(taskID, data).then(() => {
         setUpdate(true)
     })
   }
@@ -101,13 +102,13 @@ export const EditSteps = (props: EditStepsProps) => {
   return (
     <Dialog>
       <DialogTrigger>
-          <Button className="bg-pink-700 text-white">Edit Steps</Button>
+          <Button className="bg-pink-700 text-white">Add Step</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-              <DialogTitle>Edit Steps</DialogTitle>
+              <DialogTitle>Add Step</DialogTitle>
               <DialogDescription>
-                  Edit task steps here.
+                  Add steps to the task
               </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleEditSteps}>

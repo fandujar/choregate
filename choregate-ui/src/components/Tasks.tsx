@@ -1,20 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import {createTask, getTasks} from '@/services/taskApi'
-import { Task } from './Task'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 import { Button } from './ui/button'
 import { useNavigate } from 'react-router-dom'
 import { Card, CardContent } from './ui/card'
-
-interface Task {
-    id: string
-    name: string
-}
-
+import { useRecoilState } from 'recoil'
+import { TasksAtom } from '@/atoms/Tasks'
+import { TasksUpdateAtom } from '@/atoms/Update'
 
 export function Tasks() {
-    const [tasks, setTasks] = useState<Task[]>([])
-    const [update, setUpdate] = useState(false)
+    const [tasks, setTasks] = useRecoilState(TasksAtom)
+    const [update, setUpdate] = useRecoilState(TasksUpdateAtom)
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -26,7 +22,7 @@ export function Tasks() {
     }, [update])
 
     return (
-        <div className='flex-auto h-screen m-5'>
+        <div className='flex-auto h-full m-5'>
             <div className='flex'>
             <h2 className="text-xl font-semibold mb-4">Tasks</h2>
             <Button 
@@ -46,8 +42,8 @@ export function Tasks() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                        {tasks?.map((task: Task) => (
-                            <TableRow key={task.id} onClick={() => navigate(`/tasks/${task.id}`)} role="button">
+                        {tasks?.map((task) => (
+                            <TableRow key={task.id} onClick={() => {navigate(`/tasks/${task.id}`);}} role="button">
                                 <TableCell>{task.id}</TableCell>
                                 <TableCell>{task.name}</TableCell>
                             </TableRow>

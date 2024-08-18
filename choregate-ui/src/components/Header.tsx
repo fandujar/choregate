@@ -1,16 +1,14 @@
 import { ListTodo } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/Auth';
 
 export const Header = () => {
-    const navigate = useNavigate();
+    const { logout } = useAuth();
+
     const handleLogout = async (e: any) => {
         e.preventDefault();
-        // delete the token from local storage
-        localStorage.removeItem('jwt');
-        // redirect to login
-        navigate('/login');
+        logout();    
     }
 
     return (

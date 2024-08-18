@@ -54,7 +54,7 @@ func (a *AuthProviderImpl) NewTokenAuth() *jwtauth.JWTAuth {
 }
 
 // HandleLogin is a method that will be implemented by the auth provider
-func (a *AuthProviderImpl) HandleLogin(ctx context.Context, username, password string) (string, error) {
+func (a *AuthProviderImpl) HandleLogin(ctx context.Context, username, password string) (token string, err error) {
 	role, valid, err := a.ValidateUserPassword(ctx, username, password)
 	if err != nil {
 		return "", err
@@ -62,7 +62,7 @@ func (a *AuthProviderImpl) HandleLogin(ctx context.Context, username, password s
 	if !valid {
 		return "", errors.New("invalid username or password")
 	}
-	token, err := a.GenerateToken(ctx, username, role)
+	token, err = a.GenerateToken(ctx, username, role)
 	if err != nil {
 		return "", err
 	}
