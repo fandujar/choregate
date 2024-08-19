@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"encoding/json"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"github.com/fandujar/choregate/pkg/providers/tektoncd"
 	"github.com/fandujar/choregate/pkg/repositories"
 	"github.com/fandujar/choregate/pkg/repositories/memory"
+	"github.com/fandujar/choregate/pkg/repositories/postgres"
 	"github.com/fandujar/choregate/pkg/services"
 	"github.com/fandujar/choregate/pkg/transport"
 
@@ -49,16 +51,26 @@ func main() {
 	var userRepository repositories.UserRepository
 	var triggerRepository repositories.TriggerRepository
 	var teamRepository repositories.TeamRepository
-	var sessionsRepository repositories.SessionsRepository
 
-	if true {
+	repositoryType := os.Getenv("CHOREGATE_REPOSITORY_TYPE")
+	if repositoryType == "postgres" {
+		var err error
+		ctx := context.Background()
+
+		// Create a postgres repository
+		taskRepository, err = postgres.NewPostgresTaskRepository(ctx)
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to create postgres task repository")
+		}
+	}
+
+	if repositoryType == "memory" {
 		// Create a memory repository
 		taskRepository = memory.NewInMemoryTaskRepository()
 		taskRunRepository = memory.NewInMemoryTaskRunRepository()
 		userRepository = memory.NewInMemoryUserRepository()
 		triggerRepository = memory.NewInMemoryTriggerRepository()
 		teamRepository = memory.NewInMemoryTeamRepository()
-		sessionsRepository = memory.NewInMemorySessionsRepository()
 	}
 
 	// Print the type of each repository being used
@@ -66,7 +78,6 @@ func main() {
 	log.Debug().Msgf("type of userRepository: %T", userRepository)
 	log.Debug().Msgf("type of triggerRepository: %T", triggerRepository)
 	log.Debug().Msgf("type of teamRepository: %T", teamRepository)
-	log.Debug().Msgf("type of sessionsRepository: %T", sessionsRepository)
 
 	// Initialize tekton client
 	tektonClient, err := tektoncd.NewTektonClient()
