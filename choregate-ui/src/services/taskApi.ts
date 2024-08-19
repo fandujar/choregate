@@ -1,11 +1,7 @@
 import api from './api';
 
-const createTask = async () => {
+const createTask = async (data: any) => {
   try {
-    const data = {
-      "name": "mock",
-    };
-
     const response = await api.post('/tasks', data);
     return response.data;
   } catch (error) {
