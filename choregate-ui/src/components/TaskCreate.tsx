@@ -10,7 +10,7 @@ import { TasksUpdateAtom } from "@/atoms/Update";
 
 export const TaskCreate = () => {
     const [task, setTask] = useRecoilState(TaskAtom)
-    const [update, setUpdate] = useRecoilState(TasksUpdateAtom)
+    const [_, setUpdate] = useRecoilState(TasksUpdateAtom)
 
     const handleTaskCreate = (e: any) => {
         e.preventDefault()
@@ -44,7 +44,7 @@ export const TaskCreate = () => {
                         defaultValue="unamed"
                         className="col-span-3"
                         value={task.name}
-                        onChange={(e) => setTask({name: e.target.value})}
+                        onChange={(e) => setTask({...task, name: e.target.value})}
                     />
                 </div>
             </div>

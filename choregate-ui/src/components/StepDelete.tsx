@@ -16,7 +16,7 @@ type StepDeleteProps = {
     const [steps, setSteps] = useRecoilState(StepsAtom);
   
     const handleDeleteStep =  (index: number) => {
-        let data = steps.filter((step, i) => i !== index)
+        let data = steps.filter((_, i) => i !== index)
         updateSteps(taskID, data).then(() => {
             setSteps(data)
         })

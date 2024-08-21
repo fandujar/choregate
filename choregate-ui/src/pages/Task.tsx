@@ -11,7 +11,7 @@ export const TaskPage = () => {
             <Header/>
             <div className="flex">
                 <Menu />
-                <Task id={taskID}/>
+                <Task taskID={taskID!}/>
             </div>
         </div>
     )
