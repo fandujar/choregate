@@ -1,33 +1,43 @@
+import { StepType, TaskRunType, TaskType } from "@/types/Task";
 import { atom, selector } from "recoil";
 
-export const TasksAtom = atom({
+export const TasksAtom = atom<TaskType[]>({
     key: 'tasks',
     default: []
 })
 
-export const TaskAtom = atom({
+export const TaskAtom = atom<TaskType>({
     key: 'task',
-    default: {}
+    default: {
+        name: ''
+    }
 })
 
-export const StepsAtom = atom({
+export const StepsAtom = atom<StepType[]>({
     key: 'steps',
     default: []
 })
 
-export const StepAtom = atom({
+export const StepAtom = atom<StepType>({
     key: 'step',
-    default: {}
+    default: {
+        name: '',
+        image: '',
+        script: ''
+    }
 })
 
-export const TaskRunsAtom = atom({
+export const TaskRunsAtom = atom<TaskRunType[]>({
     key: 'taskRuns',
     default: []
 })
 
-export const TaskRunAtom = atom({
+export const TaskRunAtom = atom<TaskRunType>({
     key: 'taskRun',
-    default: {}
+    default: {
+        ID: '',
+        TaskID: ''
+    }
 })
 
 export const TaskRunLogsAtom = atom({

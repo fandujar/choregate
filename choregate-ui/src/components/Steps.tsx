@@ -5,7 +5,7 @@ import { getSteps } from "@/services/taskApi"
 import { useRecoilState } from "recoil";
 import { StepsUpdateAtom } from "@/atoms/Update";
 import { StepsAtom } from "@/atoms/Tasks";
-import { Step } from "@/types/Task";
+import { StepType } from "@/types/Task";
 import { StepEdit } from "./StepEdit";
 import { StepDelete } from "./StepDelete";
 
@@ -15,7 +15,7 @@ type StepsProps = {
 
 export const Steps = (props: StepsProps) => {
     const { taskID } = props;
-    const [steps, setSteps] = useRecoilState(StepsAtom);
+    const [steps, setSteps] = useRecoilState<StepType[]>(StepsAtom);
     const [update, setUpdate] = useRecoilState(StepsUpdateAtom)
 
     useEffect(() => {
@@ -42,7 +42,7 @@ export const Steps = (props: StepsProps) => {
                   </TableRow>
               </TableHeader>
               <TableBody>
-              {steps?.map((step: Step, index) => (
+              {steps?.map((step: StepType, index) => (
                   <TableRow key={index}>
                       <TableCell>{index}</TableCell>
                       <TableCell>{step.name || "unamed step"}</TableCell>

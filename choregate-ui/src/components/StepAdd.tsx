@@ -13,6 +13,9 @@ import { Button } from "./ui/button"
 import { getSteps } from "@/services/taskApi";
 import { updateSteps } from "@/services/taskApi";
 
+import { StepType } from "@/types/Task";
+import { toast } from "sonner";
+
 type StepAddProps = {
     taskID: string;
 };
@@ -20,9 +23,9 @@ type StepAddProps = {
   
 export const StepAdd = (props: StepAddProps) => {
 const { taskID } = props;
-const [steps, setSteps] = useRecoilState(StepsAtom);
+const [steps, setSteps] = useRecoilState<StepType[]>(StepsAtom);
 const [update, setUpdate] = useRecoilState(StepsUpdateAtom)
-const [step, setStep] = useRecoilState(StepAtom);
+const [step, setStep] = useRecoilState<StepType>(StepAtom);
 
 useEffect(() => {
     let response = getSteps(taskID);
@@ -47,6 +50,9 @@ const handleStepAdd = (e: any) => {
 
     updateSteps(taskID, data).then(() => {
         setUpdate(true)
+    }).catch((err) => {
+        console.log(err)
+        toast.error(`${err.message}: ${err.response.data}`)
     })
 }
 
@@ -103,7 +109,9 @@ return (
         </div>
         <DialogFooter>
             <DialogClose asChild>
-                <Button type="submit">Save changes</Button>
+                <Button type="submit" className="bg-pink-700 text-white">
+                    Add step
+                </Button>
             </DialogClose>
         </DialogFooter>
         </form>

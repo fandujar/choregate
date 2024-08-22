@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
-import {createTask, getTasks} from '@/services/taskApi'
+import { getTasks } from '@/services/taskApi'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
-import { Button } from './ui/button'
 import { useNavigate } from 'react-router-dom'
 import { Card, CardContent } from './ui/card'
 import { useRecoilState } from 'recoil'
 import { TasksAtom } from '@/atoms/Tasks'
 import { TasksUpdateAtom } from '@/atoms/Update'
+import { TaskCreate } from './TaskCreate'
 
 export function Tasks() {
     const [tasks, setTasks] = useRecoilState(TasksAtom)
@@ -24,13 +24,10 @@ export function Tasks() {
     return (
         <div className='flex-auto h-full m-5'>
             <div className='flex'>
-            <h2 className="text-xl font-semibold mb-4">Tasks</h2>
-            <Button 
-                className="ml-auto bg-pink-700 text-white"
-                onClick={() => {createTask(); setUpdate(true);}}
-            >
-                Create Task
-            </Button>
+                <h2 className="text-xl font-semibold mb-4">Tasks</h2>
+                <div className='ml-auto'>
+                    <TaskCreate/>
+                </div>
             </div>
             <Card>
                 <CardContent>

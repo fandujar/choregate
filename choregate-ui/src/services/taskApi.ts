@@ -1,15 +1,12 @@
 import api from './api';
 
-const createTask = async () => {
+const createTask = async (data: any) => {
   try {
-    const data = {
-      "name": "mock",
-    };
-
     const response = await api.post('/tasks', data);
     return response.data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
@@ -19,6 +16,7 @@ const getTask = async (taskID: string) => {
     return response.data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
@@ -28,6 +26,7 @@ const getSteps = async (taskID: string) => {
     return response.data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
@@ -46,7 +45,7 @@ const runTask = async (taskID: string) => {
     return response.data;
   } catch (error) {
     console.error(error);
-    return error;
+    throw error;
   }
 };
 
@@ -60,7 +59,7 @@ const updateSteps = async (taskID: string, data: any) => {
     return response.data;
   } catch (error) {
     console.error(error);
-    return error;
+    throw error;
   }
 };
 

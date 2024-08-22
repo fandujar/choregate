@@ -1,18 +1,19 @@
-export type Task = {
-    id: string;
+export type TaskType = {
+    id?: string;
     name: string;
 };
 
-export type Step = {
+export type StepType = {
     name: string;
     image: string;
-    command: string;
-    computeResources: string;
+    script: string;
+    command?: string;
+    computeResources?: string;
 };
 
-export type TaskRun = {
+export type TaskRunType = {
     ID: string;
     TaskID: string;
-    Status: string;
-    CreatedAt: string;
+    Status?: string;
+    CreatedAt?: string;
 }

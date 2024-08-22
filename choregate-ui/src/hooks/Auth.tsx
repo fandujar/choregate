@@ -1,9 +1,19 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import { User } from '@/atoms/User';
 
-const AuthContext = createContext({});
+type AuthContextType = {
+    user: any;
+    login: (data: any) => void;
+    logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextType>({
+    user: null,
+    login: () => null,
+    logout: () => null,
+});
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useRecoilState(User);

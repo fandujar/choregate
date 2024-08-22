@@ -12,7 +12,7 @@ export const Header = () => {
     }
 
     return (
-        <div className='flex p-2 bg-slate-100'>
+        <div className='flex p-4 bg-slate-100'>
             <h1 className='text-3xl text-pink-700 font-bold flex'>
                 <ListTodo className="mt-2 mr-2"/>
                 Choregate

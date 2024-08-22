@@ -62,7 +62,7 @@ func (s *TaskService) Run(ctx context.Context, taskID uuid.UUID, taskRunID uuid.
 		return err
 	}
 
-	if task.Steps == nil {
+	if task.Steps == nil || len(task.Steps) == 0 {
 		return fmt.Errorf("task %s has no steps", task.ID)
 	}
 

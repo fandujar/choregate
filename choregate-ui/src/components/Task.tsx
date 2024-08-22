@@ -12,16 +12,16 @@ import { useRecoilState } from "recoil";
 
 
 type TaskProps = {
-    id: string
+    taskID: string
 }
 
 export const Task = (props: TaskProps) => {
-    const { id } = props
+    const { taskID } = props
     const [task, setTask] = useRecoilState(TaskAtom)
     const [update, setUpdate] = useRecoilState(TaskUpdateAtom)
 
     useEffect(() => {
-        let task = getTask(id)
+        let task = getTask(taskID)
         task.then((task) => {
             setTask(task)
         })
@@ -33,10 +33,10 @@ export const Task = (props: TaskProps) => {
             <div className="flex">
                 <h2 className="text-xl font-semibold mb-4">Task</h2>
                 <div className="ml-auto">
-                    <StepAdd taskID={id}/>
+                    <StepAdd taskID={taskID}/>
                 </div>
                 <div className="ml-2">
-                    <RunTask taskID={id}/>
+                    <RunTask taskID={taskID}/>
                 </div>
             </div>
             <Card className="mb-4">
@@ -49,8 +49,8 @@ export const Task = (props: TaskProps) => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow key={id}>
-                                <TableCell>{id}</TableCell>
+                            <TableRow key={taskID}>
+                                <TableCell>{taskID}</TableCell>
                                 <TableCell>{task.name}</TableCell>
                             </TableRow>
                         </TableBody>
@@ -58,9 +58,9 @@ export const Task = (props: TaskProps) => {
                 </CardContent>
             </Card>
             <h2 className="text-xl font-semibold mb-4">Steps</h2>
-            <Steps taskID={id}/>
+            <Steps taskID={taskID}/>
             <h2 className="text-xl font-semibold mb-4">Runs</h2>
-            <TaskRuns taskID={id}/>
+            <TaskRuns taskID={taskID}/>
         </section>
     )
 }

@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { getTaskRuns, getTaskRunStatus, getTaskRunLogs, runTask } from '@/services/taskApi'
+import { getTaskRuns, getTaskRunLogs, runTask } from '@/services/taskApi'
 import { Card, CardContent } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 import { Button } from './ui/button'
@@ -7,9 +7,10 @@ import { useRecoilState } from 'recoil';
 import { TaskRunsUpdateAtom } from '@/atoms/Update';
 import { TaskRunsAtom } from '@/atoms/Tasks';
 import { TaskRunLogsAtom } from '@/atoms/Tasks';
-import { TaskRun } from '@/types/Task';
+import { TaskRunType } from '@/types/Task';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
 import { ScrollArea } from './ui/scroll-area';
+import { toast } from 'sonner';
 
 type TaskRunListProps = {
     taskID: string
@@ -17,7 +18,7 @@ type TaskRunListProps = {
 
 export function TaskRuns(props: TaskRunListProps) {
     const { taskID } = props
-    const [taskRuns, setTaskRuns] = useRecoilState(TaskRunsAtom)
+    const [taskRuns, setTaskRuns] = useRecoilState<TaskRunType[]>(TaskRunsAtom)
     const [update, setUpdate] = useRecoilState(TaskRunsUpdateAtom)
 
     useEffect(() => {
@@ -49,11 +50,11 @@ export function TaskRuns(props: TaskRunListProps) {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                {taskRuns?.map((taskRun: TaskRun, index) => (
+                {taskRuns?.map((taskRun: TaskRunType, index) => (
                     <TableRow key={index}>
                         <TableCell>{taskRun.ID}</TableCell>
                         <TableCell>{taskRun.CreatedAt}</TableCell>
-                        <TableCell>{handleTaskRunStatus(taskRun.ID)}</TableCell>
+                        <TableCell>{taskRun.Status}</TableCell>
                         <TableCell><TaskRunsLogs taskID={taskID} taskRunID={taskRun.ID}/></TableCell>
                     </TableRow>
                 ))}
@@ -71,10 +72,21 @@ type RunTaskProps = {
 
 export const RunTask = (props: RunTaskProps) => {
     const { taskID } = props
-    const [update, setUpdate] = useRecoilState(TaskRunsUpdateAtom)
+    const [_, setUpdate] = useRecoilState(TaskRunsUpdateAtom)
+
+    const handleRunTask = (e: any) => {
+        e.preventDefault()
+        runTask(taskID).then(() => {
+            setUpdate(true)
+        }).catch((err) => {
+            console.log(err)
+            toast.error(`${err.message}: ${err.response.data}`)
+            setUpdate(true)
+        })
+    }
 
     return (
-        <Button className="bg-pink-700 text-white" onClick={() => {runTask(taskID);setUpdate(true);}}>
+        <Button className="bg-pink-700 text-white" onClick={handleRunTask}>
             Run Task
         </Button>
     )
@@ -99,15 +111,15 @@ const TaskRunsLogs = (props: TaskRunsLogsProps) => {
     return (
         <Sheet>
             <SheetTrigger>
-                <Button onClick={handleViewLogs}>View Logs</Button>
+                <Button onClick={handleViewLogs} variant={"ghost"}>View Logs</Button>
             </SheetTrigger>
-            <SheetContent className="w-[400px] sm:w-[540px] sm:max-w-[540px]">
+            <SheetContent className="w-[540px] sm:w-[940px] sm:max-w-[940px]">
                 <SheetHeader>
                     <SheetTitle>Task Run Logs</SheetTitle>
                     <SheetDescription>logs from the task execution</SheetDescription>
                 </SheetHeader>
                 <ScrollArea className='h-full w-full'>
-                    <pre>
+                    <pre className='p-10'>
                         {taskRunLogs}
                     </pre>
                 </ScrollArea>
