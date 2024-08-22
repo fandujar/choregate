@@ -28,6 +28,13 @@ export function TaskRuns(props: TaskRunListProps) {
         })
         setUpdate(false)
     }, [update])
+    
+    const handleTaskRunStatus = (taskRunID: string) => {
+        let response = getTaskRunStatus(taskID, taskRunID)
+        response.then(({conditions}) => {
+            return conditions
+        })
+    }
 
     return (
         <div className="space-y-4">
