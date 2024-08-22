@@ -6,6 +6,7 @@ const createTask = async (data: any) => {
     return response.data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
@@ -15,6 +16,7 @@ const getTask = async (taskID: string) => {
     return response.data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
@@ -24,6 +26,7 @@ const getSteps = async (taskID: string) => {
     return response.data;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
@@ -42,7 +45,7 @@ const runTask = async (taskID: string) => {
     return response.data;
   } catch (error) {
     console.error(error);
-    return error;
+    throw error;
   }
 };
 
@@ -56,7 +59,7 @@ const updateSteps = async (taskID: string, data: any) => {
     return response.data;
   } catch (error) {
     console.error(error);
-    return error;
+    throw error;
   }
 };
 

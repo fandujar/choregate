@@ -9,7 +9,6 @@ export const TasksAtom = atom<TaskType[]>({
 export const TaskAtom = atom<TaskType>({
     key: 'task',
     default: {
-        id: '',
         name: ''
     }
 })

@@ -7,6 +7,7 @@ import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { TasksUpdateAtom } from "@/atoms/Update";
+import { toast } from "sonner";
 
 export const TaskCreate = () => {
     const [task, setTask] = useRecoilState(TaskAtom)
@@ -17,8 +18,11 @@ export const TaskCreate = () => {
         let response  = createTask(task)
         response.then(() => {
             setUpdate(true)
+        }).catch((err) => {
+            console.log(err)
+            toast.error(`${err.message}: ${err.response.data}`)
+            setUpdate(true)
         })
-        setUpdate(true)
     }
 
     return (
@@ -50,7 +54,9 @@ export const TaskCreate = () => {
             </div>
             <DialogFooter>
                 <DialogClose asChild>
-                    <Button type="submit">Create</Button>
+                    <Button type="submit" className="bg-pink-700 text-white">
+                        Create task
+                    </Button>
                 </DialogClose>
             </DialogFooter>
             </form>

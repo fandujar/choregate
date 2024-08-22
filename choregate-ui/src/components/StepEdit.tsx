@@ -11,6 +11,7 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { StepsUpdateAtom } from "@/atoms/Update";
 import { DialogClose } from "@radix-ui/react-dialog";
+import { toast } from "sonner";
 
 type StepEditProps = {
     taskID: string;
@@ -39,13 +40,16 @@ type StepEditProps = {
         data[index] = step
         updateSteps(taskID, data).then(() => {
           setUpdate(true)
+        }).catch((err) => {
+          console.log(err)
+          toast.error(`${err.message}: ${err.response.data
         })
     }
   
     return (
       <Dialog>
         <DialogTrigger>
-          <Button>
+          <Button variant={"ghost"}>
             <SquarePen/>
           </Button>
         </DialogTrigger>
@@ -85,7 +89,7 @@ type StepEditProps = {
           
           <DialogFooter>
             <DialogClose asChild>
-              <Button onClick={() => handleEditStep(stepIndex)}>
+              <Button onClick={() => handleEditStep(stepIndex)} className="bg-pink-700 text-white">
                 Save changes
               </Button>
             </DialogClose>

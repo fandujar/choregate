@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { Router } from './Router';
 import { AuthProvider } from './hooks/Auth';
 import { RecoilRoot } from 'recoil';
+import { Toaster } from 'sonner';
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
     <BrowserRouter>
     <AuthProvider>
       <Router />
+      <Toaster />
     </AuthProvider>
     </BrowserRouter>
     </RecoilRoot>

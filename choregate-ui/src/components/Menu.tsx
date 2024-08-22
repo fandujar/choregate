@@ -3,7 +3,7 @@ import { LayoutDashboard, SquareCheckBig, Settings } from 'lucide-react';
 
 export const Menu = () => {
     return (
-        <div className='flex-none flex-col p-2 bg-slate-100 h-screen pr-10'>
+        <div className='flex-none flex-col bg-slate-100 h-screen pl-4 pr-20'>
             <Link to='/' className='text-slate-600 hover:text-slate-500 text-xl mt-4 flex'>
                 <LayoutDashboard className="mt-1 mr-2 text-pink-700"/>
                 Dashboard

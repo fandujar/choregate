@@ -14,6 +14,7 @@ import { getSteps } from "@/services/taskApi";
 import { updateSteps } from "@/services/taskApi";
 
 import { StepType } from "@/types/Task";
+import { toast } from "sonner";
 
 type StepAddProps = {
     taskID: string;
@@ -49,6 +50,9 @@ const handleStepAdd = (e: any) => {
 
     updateSteps(taskID, data).then(() => {
         setUpdate(true)
+    }).catch((err) => {
+        console.log(err)
+        toast.error(`${err.message}: ${err.response.data}`)
     })
 }
 
