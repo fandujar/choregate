@@ -42,7 +42,7 @@ type StepEditProps = {
           setUpdate(true)
         }).catch((err) => {
           console.log(err)
-          toast.error(`${err.message}: ${err.response.data
+          toast.error(`${err.message}: ${err.response.data}`)
         })
     }
   
