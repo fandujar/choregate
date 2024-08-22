@@ -6,12 +6,12 @@ import (
 )
 
 type UserConfig struct {
-	ID       uuid.UUID `json:"id"`
-	Slug     string    `json:"slug"`
-	Name     string    `json:"name"`
-	Email    string    `json:"email"`
-	Password string    `json:"password"`
-	Role     string    `json:"role"`
+	ID         uuid.UUID `json:"id"`
+	Slug       string    `json:"slug"`
+	Name       string    `json:"name"`
+	Email      string    `json:"email"`
+	Password   string    `json:"password"`
+	SystemRole string    `json:"system_role"`
 }
 
 type User struct {

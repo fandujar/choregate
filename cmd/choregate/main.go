@@ -137,9 +137,27 @@ func main() {
 				"token": token,
 			})
 		})
-		// r.Post("/logout", func(w http.ResponseWriter, r *http.Request) {
+		r.Post("/validate", func(w http.ResponseWriter, r *http.Request) {
+			token := r.Header.Get("Authorization")
+			token = token[7:]
+			if token == "" {
+				http.Error(w, "missing token", http.StatusBadRequest)
+				return
+			}
 
-		// })
+			valid, err := authProvider.ValidateToken(r.Context(), token)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			if !valid {
+				http.Error(w, "invalid token", http.StatusUnauthorized)
+				return
+			}
+			json.NewEncoder(w).Encode(map[string]bool{
+				"valid": valid,
+			})
+		})
 	})
 
 	// Register the routes

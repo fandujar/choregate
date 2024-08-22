@@ -106,7 +106,7 @@ func (a *AuthProviderImpl) ValidateUserPassword(ctx context.Context, username, p
 	}
 
 	if user.Password == password {
-		return user.Role, true, nil
+		return user.SystemRole, true, nil
 	}
 
 	return "", false, nil
@@ -118,12 +118,12 @@ func (a *AuthProviderImpl) RefreshToken(ctx context.Context, token string) (stri
 }
 
 // GetToken is a method that will be implemented by the auth provider
-func (a *AuthProviderImpl) GenerateToken(ctx context.Context, username, role string) (string, error) {
+func (a *AuthProviderImpl) GenerateToken(ctx context.Context, username, systemRole string) (string, error) {
 	_, token, err := a.NewTokenAuth().Encode(
 		map[string]interface{}{
-			"username": username,
-			"role":     role,
-			"exp":      time.Now().Add(time.Hour * 24).Unix(),
+			"username":    username,
+			"system_role": systemRole,
+			"exp":         time.Now().Add(time.Hour * 24).Unix(),
 		},
 	)
 	if err != nil {

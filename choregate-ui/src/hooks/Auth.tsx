@@ -29,6 +29,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     }, [setUser]);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const token = localStorage.getItem('jwt');
+            if (!token) {
+                navigate('/login');
+            } else {
+                const response = fetch('/user/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+                
+                response.then((res) => {
+                    if (res.status === 401) {
+                        localStorage.removeItem('jwt');
+                        navigate('/login');
+                    }}).catch((error) => {
+                        console.error('Error validating token', error);
+                    });
+                }
+            }, 60000);
+
+        return () => clearInterval(interval);
+    }, []);
+    
+
+
     const login = (data: any) => {
         localStorage.setItem('jwt', data.token);
         navigate('/');
