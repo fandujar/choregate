@@ -145,7 +145,7 @@ func (h *TaskHandler) UpdateStepsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	task.Steps = steps
+	task.TaskSpec.Steps = steps
 	log.Debug().Msgf("updating task %s with steps %v", taskID, steps)
 	err = h.service.Update(r.Context(), task)
 	if err != nil {
@@ -171,11 +171,11 @@ func (h *TaskHandler) GetTaskStepsHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if task.Steps == nil {
-		task.Steps = []tekton.Step{}
+	if task.TaskSpec.Steps == nil {
+		task.TaskSpec.Steps = []tekton.Step{}
 	}
 
-	json.NewEncoder(w).Encode(task.Steps)
+	json.NewEncoder(w).Encode(task.TaskSpec.Steps)
 }
 
 // GetTaskRunsHandler handles the GET /tasks/{id}/runs endpoint.

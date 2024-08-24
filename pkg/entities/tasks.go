@@ -9,13 +9,12 @@ import (
 )
 
 type TaskConfig struct {
-	ID          uuid.UUID          `json:"id"`
-	Name        string             `json:"name"`
-	Namespace   string             `json:"namespace"`
-	Description string             `json:"description"`
-	Timeout     time.Duration      `json:"timeout"`
-	Steps       []tekton.Step      `json:"steps"`
-	Params      []tekton.ParamSpec `json:"params"`
+	ID          uuid.UUID     `json:"id"`
+	Name        string        `json:"name"`
+	Namespace   string        `json:"namespace"`
+	Description string        `json:"description"`
+	Timeout     time.Duration `json:"timeout"`
+	*tekton.TaskSpec
 }
 
 type Task struct {
@@ -39,6 +38,10 @@ func NewTask(config *TaskConfig) (*Task, error) {
 
 	if config.Timeout == 0 {
 		config.Timeout = 5 * time.Minute
+	}
+
+	if config.TaskSpec == nil {
+		config.TaskSpec = &tekton.TaskSpec{}
 	}
 
 	return &Task{

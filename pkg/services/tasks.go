@@ -62,7 +62,7 @@ func (s *TaskService) Run(ctx context.Context, taskID uuid.UUID, taskRunID uuid.
 		return err
 	}
 
-	if task.Steps == nil || len(task.Steps) == 0 {
+	if task.TaskSpec.Steps == nil || len(task.TaskSpec.Steps) == 0 {
 		return fmt.Errorf("task %s has no steps", task.ID)
 	}
 
@@ -84,10 +84,7 @@ func (s *TaskService) Run(ctx context.Context, taskID uuid.UUID, taskRunID uuid.
 						Namespace:    task.Namespace,
 					},
 					Spec: tekton.TaskRunSpec{
-						TaskSpec: &tekton.TaskSpec{
-							Steps:  task.Steps,
-							Params: task.Params,
-						},
+						TaskSpec: task.TaskSpec,
 					},
 				},
 			},
