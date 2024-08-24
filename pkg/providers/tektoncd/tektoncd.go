@@ -25,7 +25,7 @@ type TektonClient interface {
 	// WatchTaskRun watches a task run.
 	WatchTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun, id uuid.UUID) (<-chan watch.Event, error)
 	// GetTaskRunLogs returns a stream of logs for a task run.
-	GetTaskRunLogs(ctx context.Context, taskRun *tektonAPI.TaskRun) (string, error)
+	GetTaskRunLogs(ctx context.Context, taskRun *tektonAPI.TaskRun) (map[string]string, error)
 }
 
 type TektonClientImpl struct {
@@ -77,18 +77,28 @@ func (c *TektonClientImpl) GetTaskRun(ctx context.Context, namespace string, id 
 }
 
 // Logs returns the logs of a task run.
-func (c *TektonClientImpl) Logs(ctx context.Context, taskRun *tektonAPI.TaskRun) (string, error) {
-	// Get the logs of the task run.
-	raw, err := c.kubeClient.CoreV1().Pods(taskRun.Namespace).GetLogs(taskRun.Status.PodName, &v1.PodLogOptions{}).Do(ctx).Raw()
+func (c *TektonClientImpl) Logs(ctx context.Context, taskRun *tektonAPI.TaskRun) (map[string]string, error) {
+
+	pod, err := c.kubeClient.CoreV1().Pods(taskRun.Namespace).Get(ctx, taskRun.Status.PodName, metav1.GetOptions{})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	if raw == nil {
-		return "", fmt.Errorf("failed to get logs")
+	var logs map[string]string = make(map[string]string)
+
+	for _, container := range pod.Spec.Containers {
+		raw, err := c.kubeClient.CoreV1().Pods(taskRun.Namespace).GetLogs(pod.Name, &v1.PodLogOptions{
+			Container: container.Name,
+		}).DoRaw(ctx)
+
+		if err != nil {
+			return nil, err
+		}
+
+		logs[container.Name] = string(raw)
 	}
 
-	return string(raw), nil
+	return logs, nil
 }
 
 func (c *TektonClientImpl) RunTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun) error {
@@ -116,6 +126,6 @@ func (c *TektonClientImpl) WatchTaskRun(ctx context.Context, taskRun *tektonAPI.
 	return watcher.ResultChan(), nil
 }
 
-func (c *TektonClientImpl) GetTaskRunLogs(ctx context.Context, taskRun *tektonAPI.TaskRun) (string, error) {
+func (c *TektonClientImpl) GetTaskRunLogs(ctx context.Context, taskRun *tektonAPI.TaskRun) (map[string]string, error) {
 	return c.Logs(ctx, taskRun)
 }

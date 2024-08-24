@@ -11,6 +11,8 @@ import { TaskRunType } from '@/types/Task';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
 import { ScrollArea } from './ui/scroll-area';
 import { toast } from 'sonner';
+import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
+import { TabsContent } from '@radix-ui/react-tabs';
 
 type TaskRunListProps = {
     taskID: string
@@ -98,6 +100,8 @@ const TaskRunsLogs = (props: TaskRunsLogsProps) => {
         let response = getTaskRunLogs(taskID, taskRunID)
         response.then((logs) => {
             setTaskRunLogs(logs)
+        }).catch((err) => {
+            toast.error(`${err.message}: ${err.response.data}`)
         })
     }
 
@@ -112,9 +116,18 @@ const TaskRunsLogs = (props: TaskRunsLogsProps) => {
                     <SheetDescription>logs from the task execution</SheetDescription>
                 </SheetHeader>
                 <ScrollArea className='h-full w-full'>
-                    <pre className='p-10'>
-                        {taskRunLogs}
-                    </pre>
+                    <Tabs className="p-5">
+                        <TabsList className="grid w-full grid-cols-5">
+                            {Object.keys(taskRunLogs)?.map((key, index) => (
+                                <TabsTrigger key={index} value={key}>{key}</TabsTrigger>
+                            ))}
+                        </TabsList>
+                        {Object.keys(taskRunLogs)?.map((key, index) => (
+                            <TabsContent key={index} value={key}>
+                                <pre>{taskRunLogs[key]}</pre>
+                            </TabsContent>
+                        ))}
+                    </Tabs>
                 </ScrollArea>
                 <SheetFooter>
                     <SheetClose asChild>

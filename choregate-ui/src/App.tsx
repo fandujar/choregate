@@ -3,7 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { Router } from './Router';
 import { AuthProvider } from './hooks/Auth';
 import { RecoilRoot } from 'recoil';
-import { Toaster } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
 
 function App() {
   return (
