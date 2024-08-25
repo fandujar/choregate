@@ -13,12 +13,12 @@ import (
 
 // User represents a user in the API.
 type User struct {
-	ID       uuid.UUID `json:"id"`
-	Slug     string    `json:"slug"`
-	Name     string    `json:"name"`
-	Roles    []string  `json:"roles"`
-	Email    string    `json:"email"`
-	Password string    `json:"password"`
+	ID         uuid.UUID `json:"id"`
+	Slug       string    `json:"slug"`
+	Name       string    `json:"name"`
+	Email      string    `json:"email"`
+	SystemRole string    `json:"system_role"`
+	Password   string    `json:"password"`
 }
 
 type UsersHandler struct {
@@ -101,11 +101,12 @@ func (h *UsersHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	userConfig := &entities.UserConfig{
-		ID:       u.ID,
-		Slug:     u.Slug,
-		Name:     u.Name,
-		Email:    u.Email,
-		Password: u.Password,
+		ID:         u.ID,
+		Slug:       u.Slug,
+		Name:       u.Name,
+		Email:      u.Email,
+		SystemRole: u.SystemRole,
+		Password:   u.Password,
 	}
 
 	user, err := entities.NewUser(userConfig)

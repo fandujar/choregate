@@ -13,7 +13,7 @@ import (
 
 type AuthProvider interface {
 	// HandleLogin is a method that will be implemented by the auth provider
-	HandleLogin(ctx context.Context, username, password string) (string, error)
+	HandleLogin(ctx context.Context, username, password string) (*entities.User, string, error)
 	// ValidateToken is a method that will be implemented by the auth provider
 	ValidateToken(ctx context.Context, token string) (bool, error)
 	// ValidateUserPassword is a method that will be implemented by the auth provider
@@ -55,20 +55,20 @@ func (a *AuthProviderImpl) NewTokenAuth() *jwtauth.JWTAuth {
 }
 
 // HandleLogin is a method that will be implemented by the auth provider
-func (a *AuthProviderImpl) HandleLogin(ctx context.Context, username, password string) (token string, err error) {
+func (a *AuthProviderImpl) HandleLogin(ctx context.Context, username, password string) (user *entities.User, token string, err error) {
 	user, valid, err := a.ValidateUserPassword(ctx, username, password)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 	if !valid {
-		return "", errors.New("invalid username or password")
+		return nil, "", errors.New("invalid username or password")
 	}
 	token, err = a.GenerateToken(ctx, user)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 
-	return token, nil
+	return user, token, nil
 }
 
 // ValidateToken is a method that will be implemented by the auth provider

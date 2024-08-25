@@ -123,7 +123,7 @@ func main() {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			token, err := authProvider.HandleLogin(
+			user, token, err := authProvider.HandleLogin(
 				r.Context(),
 				r.FormValue("username"),
 				r.FormValue("password"),
@@ -135,7 +135,11 @@ func main() {
 
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(map[string]string{
-				"token": token,
+				"user_id":     user.ID.String(),
+				"username":    user.Email,
+				"system_role": user.SystemRole,
+				"email":       user.Email,
+				"token":       token,
 			})
 		})
 		r.Post("/validate", func(w http.ResponseWriter, r *http.Request) {
