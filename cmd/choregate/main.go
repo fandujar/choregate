@@ -199,6 +199,7 @@ func main() {
 			TektonCD: tektonClient,
 		},
 	)
+
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create controller")
 	}

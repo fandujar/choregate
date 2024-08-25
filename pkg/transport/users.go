@@ -63,7 +63,7 @@ func RegisterUsersRoutes(r chi.Router, service services.UserService) {
 
 // GetUsersHandler handles the GET /users endpoint.
 func (h *UsersHandler) GetUsersHandler(w http.ResponseWriter, r *http.Request) {
-	users, err := h.service.FindAll(r.Context())
+	users, err := h.service.GetUsers(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
