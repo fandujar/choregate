@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: test-choregate
+  namespace: choregate
+spec:
+  steps:
+  - name: echo
+    image: ubuntu
+    script: |
+      apt update
+      apt install -y curl
