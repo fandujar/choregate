@@ -128,20 +128,33 @@ func (h *UsersHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request)
 func (h *UsersHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	uid, err := uuid.Parse(id)
+	userID, err := uuid.Parse(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	user := &entities.User{}
-	err = json.NewDecoder(r.Body).Decode(user)
+	var u User
+	err = json.NewDecoder(r.Body).Decode(u)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	user.ID = uid
+	userConfig := &entities.UserConfig{
+		ID:         userID,
+		Slug:       u.Slug,
+		Name:       u.Name,
+		Email:      u.Email,
+		SystemRole: u.SystemRole,
+		Password:   u.Password,
+	}
+
+	user, err := entities.NewUser(userConfig)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	err = h.service.UpdateUser(r.Context(), user)
 	if err != nil {
