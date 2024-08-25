@@ -18,6 +18,10 @@ import (
 
 // TektonClient is a client for interacting with Tekton.
 type TektonClient interface {
+	// WatchTasks watches all tasks inside a namespace.
+	WatchTasks(ctx context.Context, namespace string) (<-chan watch.Event, error)
+	// WatchTask watches a task.
+	WatchTask(ctx context.Context, task *tektonAPI.Task, id uuid.UUID) (<-chan watch.Event, error)
 	// GetTaskRun returns a task run by name.
 	GetTaskRun(ctx context.Context, namespace string, id uuid.UUID) (*tektonAPI.TaskRun, error)
 	// RunTask runs a task.
@@ -59,6 +63,32 @@ func NewTektonClient() (TektonClient, error) {
 		kubeClient:   k,
 		tektonClient: t,
 	}, nil
+}
+
+// WatchTasks watches all tasks inside a namespace.
+func (c *TektonClientImpl) WatchTasks(ctx context.Context, namespace string) (<-chan watch.Event, error) {
+	// Watch the tasks.
+	watcher, err := c.tektonClient.TektonV1().Tasks(namespace).Watch(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return watcher.ResultChan(), nil
+}
+
+// WatchTask watches a task.
+func (c *TektonClientImpl) WatchTask(ctx context.Context, task *tektonAPI.Task, id uuid.UUID) (<-chan watch.Event, error) {
+	namespace := task.Namespace
+
+	// Watch the task.
+	watcher, err := c.tektonClient.TektonV1().Tasks(namespace).Watch(ctx, metav1.ListOptions{
+		LabelSelector: "choregate.fandujar.dev/task-id=" + id.String(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return watcher.ResultChan(), nil
 }
 
 // GetTaskRun returns a task run by ID.

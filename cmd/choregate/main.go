@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/fandujar/choregate/pkg/controller"
 	"github.com/fandujar/choregate/pkg/providers/auth"
 	"github.com/fandujar/choregate/pkg/providers/tektoncd"
 	"github.com/fandujar/choregate/pkg/repositories"
@@ -191,6 +192,18 @@ func main() {
 		Addr:    ":8080",
 		Handler: r,
 	}
+
+	controller, err := controller.NewController()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create controller")
+	}
+
+	go func() {
+		if err := controller.Run(context.Background()); err != nil {
+			log.Error().Err(err).Msg("controller error")
+			signalHandler <- syscall.SIGTERM
+		}
+	}()
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
