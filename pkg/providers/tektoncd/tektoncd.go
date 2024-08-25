@@ -22,6 +22,8 @@ type TektonClient interface {
 	WatchTasks(ctx context.Context, namespace string) (<-chan watch.Event, error)
 	// WatchTask watches a task.
 	WatchTask(ctx context.Context, task *tektonAPI.Task, id uuid.UUID) (<-chan watch.Event, error)
+	// SetTaskLabels sets the labels of a task.
+	SetTaskLabels(ctx context.Context, task *tektonAPI.Task, labels map[string]string) error
 	// GetTaskRun returns a task run by name.
 	GetTaskRun(ctx context.Context, namespace string, id uuid.UUID) (*tektonAPI.TaskRun, error)
 	// RunTask runs a task.
@@ -89,6 +91,20 @@ func (c *TektonClientImpl) WatchTask(ctx context.Context, task *tektonAPI.Task, 
 	}
 
 	return watcher.ResultChan(), nil
+}
+
+// SetTaskLabels sets the labels of a task.
+func (c *TektonClientImpl) SetTaskLabels(ctx context.Context, task *tektonAPI.Task, labels map[string]string) error {
+	namespace := task.Namespace
+
+	// Set the labels.
+	task.Labels = labels
+	_, err := c.tektonClient.TektonV1().Tasks(namespace).Update(ctx, task, metav1.UpdateOptions{})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // GetTaskRun returns a task run by ID.

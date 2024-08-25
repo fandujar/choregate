@@ -15,7 +15,7 @@ type PostgresTaskRepository struct {
 }
 
 // FindAll returns all tasks in the repository.
-func (r *PostgresTaskRepository) FindAll(ctx context.Context) ([]*entities.Task, error) {
+func (r *PostgresTaskRepository) FindAll(ctx context.Context, taskPermissions *entities.TaskPermissions) ([]*entities.Task, error) {
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func (r *PostgresTaskRepository) FindAll(ctx context.Context) ([]*entities.Task,
 }
 
 // FindByID returns the task with the specified ID.
-func (r *PostgresTaskRepository) FindByID(ctx context.Context, id uuid.UUID) (*entities.Task, error) {
+func (r *PostgresTaskRepository) FindByID(ctx context.Context, id uuid.UUID, taskPermissions *entities.TaskPermissions) (*entities.Task, error) {
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		return nil, err

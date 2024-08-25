@@ -2,9 +2,10 @@ package controller
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/fandujar/choregate/pkg/providers/tektoncd"
+	tektonAPI "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
+
 	"github.com/rs/zerolog/log"
 )
 
@@ -39,8 +40,16 @@ func (c *Controller) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case event := <-events:
-			// TODO: handle event to create task on choregate and add choregate labels to tektonCD task
-			log.Info().Msg(fmt.Sprintf("event received: %v, event type: %t", event, event))
+			switch event.Type {
+			case "ADDED":
+				log.Info().Msgf("Task %s added", event.Object.(*tektonAPI.Task).Name)
+			case "MODIFIED":
+				log.Info().Msgf("Task %s modified", event.Object.(*tektonAPI.Task).Name)
+			case "DELETED":
+				log.Info().Msgf("Task %s deleted", event.Object.(*tektonAPI.Task).Name)
+			default:
+				log.Error().Msgf("Unknown event type: %s", event.Type)
+			}
 		}
 	}
 }

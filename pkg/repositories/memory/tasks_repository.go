@@ -17,11 +17,11 @@ func (r *InMemoryTaskRepository) FindAll(ctx context.Context, taskPermissions *e
 	// TODO: Implement FindAll method with context
 	tasks := make([]*entities.Task, 0, len(r.tasks))
 	for _, task := range r.tasks {
-		if taskPermissions == nil {
+		if task.TaskPermissions == nil {
 			tasks = append(tasks, task)
 		}
 
-		if taskPermissions.Owner != nil && taskPermissions.Owner.Owner == task.Owner.Owner {
+		if task.TaskPermissions != nil && taskPermissions.Owner.Owner == task.Owner.Owner {
 			tasks = append(tasks, task)
 		}
 	}
