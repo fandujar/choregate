@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/fandujar/choregate/pkg/entities"
 	"github.com/fandujar/choregate/pkg/services"
 	"github.com/go-chi/jwtauth/v5"
 )
@@ -16,11 +17,11 @@ type AuthProvider interface {
 	// ValidateToken is a method that will be implemented by the auth provider
 	ValidateToken(ctx context.Context, token string) (bool, error)
 	// ValidateUserPassword is a method that will be implemented by the auth provider
-	ValidateUserPassword(ctx context.Context, username, password string) (role string, valid bool, err error)
+	ValidateUserPassword(ctx context.Context, username, password string) (user *entities.User, valid bool, err error)
 	// RefreshToken is a method that will be implemented by the auth provider
 	RefreshToken(ctx context.Context, token string) (string, error)
 	// GenerateToken is a method that will be implemented by the auth provider
-	GenerateToken(ctx context.Context, username, role string) (string, error)
+	GenerateToken(ctx context.Context, user *entities.User) (string, error)
 	// NewTokenAuth is a method that will be implemented by the auth provider
 	NewTokenAuth() *jwtauth.JWTAuth
 }
@@ -55,14 +56,14 @@ func (a *AuthProviderImpl) NewTokenAuth() *jwtauth.JWTAuth {
 
 // HandleLogin is a method that will be implemented by the auth provider
 func (a *AuthProviderImpl) HandleLogin(ctx context.Context, username, password string) (token string, err error) {
-	role, valid, err := a.ValidateUserPassword(ctx, username, password)
+	user, valid, err := a.ValidateUserPassword(ctx, username, password)
 	if err != nil {
 		return "", err
 	}
 	if !valid {
 		return "", errors.New("invalid username or password")
 	}
-	token, err = a.GenerateToken(ctx, username, role)
+	token, err = a.GenerateToken(ctx, user)
 	if err != nil {
 		return "", err
 	}
@@ -85,31 +86,40 @@ func (a *AuthProviderImpl) ValidateToken(ctx context.Context, token string) (boo
 }
 
 // ValidateUserPassword is a method that will be implemented by the auth provider
-func (a *AuthProviderImpl) ValidateUserPassword(ctx context.Context, username, password string) (role string, valid bool, err error) {
+func (a *AuthProviderImpl) ValidateUserPassword(ctx context.Context, username, password string) (user *entities.User, valid bool, err error) {
 	if username == "" || password == "" {
-		return "", false, nil
+		return nil, false, nil
 	}
 	superUser, superUserPassword := os.Getenv("CHOREGATE_SUPERUSER"), os.Getenv("CHOREGATE_SUPERUSER_PASSWORD")
 	if superUser != "" && superUserPassword != "" {
 		if username == superUser && password == superUserPassword {
-			return "admin", true, nil
+			user, _ = entities.NewUser(
+				&entities.UserConfig{
+					Slug:       superUser,
+					Name:       superUser,
+					Email:      superUser,
+					Password:   superUserPassword,
+					SystemRole: "admin",
+				},
+			)
+			return user, true, nil
 		}
 	}
 
-	user, err := a.UserService.GetUserByEmail(ctx, username)
+	user, err = a.UserService.GetUserByEmail(ctx, username)
 	if err != nil {
-		return "", false, err
+		return nil, false, err
 	}
 
 	if user == nil {
-		return "", false, nil
+		return nil, false, nil
 	}
 
 	if user.Password == password {
-		return user.SystemRole, true, nil
+		return user, true, nil
 	}
 
-	return "", false, nil
+	return nil, false, nil
 }
 
 // RefreshToken is a method that will be implemented by the auth provider
@@ -118,12 +128,13 @@ func (a *AuthProviderImpl) RefreshToken(ctx context.Context, token string) (stri
 }
 
 // GetToken is a method that will be implemented by the auth provider
-func (a *AuthProviderImpl) GenerateToken(ctx context.Context, username, systemRole string) (string, error) {
+func (a *AuthProviderImpl) GenerateToken(ctx context.Context, user *entities.User) (string, error) {
 	_, token, err := a.NewTokenAuth().Encode(
 		map[string]interface{}{
-			"username":    username,
-			"email":       username,
-			"system_role": systemRole,
+			"username":    user.Email,
+			"user_id":     user.ID.String(),
+			"email":       user.Email,
+			"system_role": user.SystemRole,
 			"exp":         time.Now().Add(time.Hour * 24).Unix(),
 			"iat":         time.Now().Unix(),
 			"iss":         "choregate",

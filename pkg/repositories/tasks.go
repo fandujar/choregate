@@ -9,9 +9,9 @@ import (
 
 type TaskRepository interface {
 	// FindAll returns all tasks.
-	FindAll(ctx context.Context) ([]*entities.Task, error)
+	FindAll(ctx context.Context, taskPermissions *entities.TaskPermissions) ([]*entities.Task, error)
 	// FindByID returns a task by ID.
-	FindByID(ctx context.Context, id uuid.UUID) (*entities.Task, error)
+	FindByID(ctx context.Context, id uuid.UUID, taskPermissions *entities.TaskPermissions) (*entities.Task, error)
 	// Create creates a new task.
 	Create(ctx context.Context, task *entities.Task) error
 	// Update updates a task.

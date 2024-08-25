@@ -14,11 +14,24 @@ type TaskConfig struct {
 	Namespace   string        `json:"namespace"`
 	Description string        `json:"description"`
 	Timeout     time.Duration `json:"timeout"`
+	*TaskPermissions
 	*tekton.TaskSpec
 }
 
 type Task struct {
 	*TaskConfig
+}
+
+type TaskPermissions struct {
+	Owner         *TaskOwner      `json:"owner"`
+	Organizations []*Organization `json:"organizations"`
+	Teams         []*Team         `json:"teams"`
+	Users         []*User         `json:"users"`
+}
+
+type TaskOwner struct {
+	Owner uuid.UUID `json:"owner"`
+	Type  string    `json:"type"`
 }
 
 // NewTask creates a new Task with the given configuration and default values.

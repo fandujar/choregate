@@ -13,23 +13,38 @@ type InMemoryTaskRepository struct {
 }
 
 // FindAll returns all tasks in the repository.
-func (r *InMemoryTaskRepository) FindAll(ctx context.Context) ([]*entities.Task, error) {
+func (r *InMemoryTaskRepository) FindAll(ctx context.Context, taskPermissions *entities.TaskPermissions) ([]*entities.Task, error) {
 	// TODO: Implement FindAll method with context
 	tasks := make([]*entities.Task, 0, len(r.tasks))
 	for _, task := range r.tasks {
-		tasks = append(tasks, task)
+		if taskPermissions == nil {
+			tasks = append(tasks, task)
+		}
+
+		if taskPermissions.Owner != nil && taskPermissions.Owner.Owner == task.Owner.Owner {
+			tasks = append(tasks, task)
+		}
 	}
 	return tasks, nil
 }
 
 // FindByID returns the task with the specified ID.
-func (r *InMemoryTaskRepository) FindByID(ctx context.Context, id uuid.UUID) (*entities.Task, error) {
+func (r *InMemoryTaskRepository) FindByID(ctx context.Context, id uuid.UUID, taskPermissions *entities.TaskPermissions) (*entities.Task, error) {
 	// TODO: Implement FindByID method with context
 	task, ok := r.tasks[id]
 	if !ok {
 		return nil, entities.ErrTaskNotFound{}
 	}
-	return task, nil
+
+	if task.TaskPermissions == nil {
+		return task, nil
+	}
+
+	if task.TaskPermissions != nil && taskPermissions.Owner.Owner == task.Owner.Owner {
+		return task, nil
+	}
+
+	return nil, entities.ErrTaskNotFound{}
 }
 
 // Create adds a new task to the repository.

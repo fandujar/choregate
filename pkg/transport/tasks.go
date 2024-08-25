@@ -33,7 +33,7 @@ func NewTaskHandler(service services.TaskService) *TaskHandler {
 
 // GetTasksHandler handles the GET /tasks endpoint.
 func (h *TaskHandler) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
-	tasks, err := h.service.FindAll(r.Context())
+	tasks, err := h.service.FindAll(r.Context(), nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -53,7 +53,7 @@ func (h *TaskHandler) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := h.service.FindByID(r.Context(), taskID)
+	task, err := h.service.FindByID(r.Context(), taskID, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -140,7 +140,7 @@ func (h *TaskHandler) UpdateStepsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	task, err := h.service.FindByID(r.Context(), taskID)
+	task, err := h.service.FindByID(r.Context(), taskID, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -166,7 +166,7 @@ func (h *TaskHandler) GetTaskStepsHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	task, err := h.service.FindByID(r.Context(), taskID)
+	task, err := h.service.FindByID(r.Context(), taskID, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return

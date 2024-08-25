@@ -31,13 +31,13 @@ func NewTaskService(taskRepo repositories.TaskRepository, taskRunRepo repositori
 }
 
 // FindAll returns all tasks.
-func (s *TaskService) FindAll(ctx context.Context) ([]*entities.Task, error) {
-	return s.taskRepo.FindAll(ctx)
+func (s *TaskService) FindAll(ctx context.Context, taskPermissions *entities.TaskPermissions) ([]*entities.Task, error) {
+	return s.taskRepo.FindAll(ctx, taskPermissions)
 }
 
 // FindByID returns a task by ID.
-func (s *TaskService) FindByID(ctx context.Context, id uuid.UUID) (*entities.Task, error) {
-	return s.taskRepo.FindByID(ctx, id)
+func (s *TaskService) FindByID(ctx context.Context, id uuid.UUID, taskPermissions *entities.TaskPermissions) (*entities.Task, error) {
+	return s.taskRepo.FindByID(ctx, id, taskPermissions)
 }
 
 // Create creates a new task.
@@ -57,7 +57,7 @@ func (s *TaskService) Delete(ctx context.Context, id uuid.UUID) error {
 
 // Run runs a task.
 func (s *TaskService) Run(ctx context.Context, taskID uuid.UUID, taskRunID uuid.UUID) error {
-	task, err := s.taskRepo.FindByID(ctx, taskID)
+	task, err := s.taskRepo.FindByID(ctx, taskID, nil)
 	if err != nil {
 		return err
 	}
