@@ -1,6 +1,4 @@
 import { createTask } from "@/services/taskApi"
-
-import { TaskAtom } from "@/atoms/Tasks";
 import { useRecoilState } from "recoil";
 import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
 import { Button } from "./ui/button";
@@ -8,9 +6,11 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { TasksUpdateAtom } from "@/atoms/Update";
 import { toast } from "sonner";
+import { useState } from "react";
+import { TaskType } from "@/types/Task";
 
 export const TaskCreate = () => {
-    const [task, setTask] = useRecoilState(TaskAtom)
+    const [task, setTask] = useState<TaskType>({name: ""})
     const [_, setUpdate] = useRecoilState(TasksUpdateAtom)
 
     const handleTaskCreate = (e: any) => {
