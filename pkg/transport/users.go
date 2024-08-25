@@ -135,7 +135,7 @@ func (h *UsersHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	var u User
-	err = json.NewDecoder(r.Body).Decode(u)
+	err = json.NewDecoder(r.Body).Decode(&u)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
