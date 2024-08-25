@@ -12,3 +12,7 @@ type OrganizationConfig struct {
 	Teams   map[uuid.UUID]*Team   `json:"teams"`
 	Members map[uuid.UUID]*Member `json:"members"`
 }
+
+func NewOrganization(config *OrganizationConfig) (*Organization, error) {
+	return &Organization{OrganizationConfig: config}, nil
+}

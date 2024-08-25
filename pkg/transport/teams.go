@@ -120,6 +120,7 @@ func (h *TeamsHandler) CreateTeamHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (h *TeamsHandler) UpdateTeamHandler(w http.ResponseWriter, r *http.Request) {
@@ -157,6 +158,8 @@ func (h *TeamsHandler) UpdateTeamHandler(w http.ResponseWriter, r *http.Request)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (h *TeamsHandler) DeleteTeamHandler(w http.ResponseWriter, r *http.Request) {
