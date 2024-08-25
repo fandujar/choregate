@@ -193,7 +193,12 @@ func main() {
 		Handler: r,
 	}
 
-	controller, err := controller.NewController()
+	controller, err := controller.NewController(
+		&controller.ControllerConfig{
+			Service:  taskService,
+			TektonCD: tektonClient,
+		},
+	)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create controller")
 	}
