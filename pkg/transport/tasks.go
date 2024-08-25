@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/fandujar/choregate/pkg/entities"
+	"github.com/fandujar/choregate/pkg/rbac"
 	"github.com/fandujar/choregate/pkg/services"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -299,20 +300,39 @@ func (h *TaskHandler) FakeHandler(w http.ResponseWriter, r *http.Request) {
 // RegisterTasksRoutes registers the routes for the tasks API.
 func RegisterTasksRoutes(r chi.Router, service services.TaskService) {
 	handler := NewTaskHandler(service)
+	roles := rbac.SetupRoles()
 
-	r.Get("/tasks", handler.GetTasksHandler)
-	r.Post("/tasks", handler.CreateTaskHandler)
+	r.Route("/tasks", func(r chi.Router) {
+		// GET /tasks
+		r.Group(func(r chi.Router) {
+			r.Use(rbac.PermissionInjectorMiddleware(rbac.Permission{Scope: "tasks", Action: "read"}))
+			r.Use(rbac.RBAC(roles))
+			r.Get("/", handler.GetTasksHandler)
+			r.Get("/{id}", handler.GetTaskHandler)
+			r.Get("/{id}/steps", handler.GetTaskStepsHandler)
+			r.Get("/{id}/runs", handler.GetTaskRunsHandler)
+			r.Get("/{id}/runs/{runID}", handler.GetTaskRunHandler)
+			r.Get("/{id}/runs/{runID}/logs", handler.GetTaskRunLogsHandler)
+			r.Get("/{id}/runs/{runID}/status", handler.GetTaskRunStatusHandler)
+		})
 
-	r.Get("/tasks/{id}", handler.GetTaskHandler)
-	r.Post("/tasks/{id}/runs", handler.RunTaskHandler)
-	r.Get("/tasks/{id}/runs", handler.GetTaskRunsHandler)
-	r.Put("/tasks/{id}/steps", handler.UpdateStepsHandler)
-	r.Get("/tasks/{id}/steps", handler.GetTaskStepsHandler)
+		// POST /tasks
+		r.Group(func(r chi.Router) {
+			r.Use(rbac.PermissionInjectorMiddleware(rbac.Permission{Scope: "tasks", Action: "create"}))
+			r.Use(rbac.RBAC(roles))
+			r.Post("/", handler.CreateTaskHandler)
+			r.Post("/{id}/runs", handler.RunTaskHandler)
+		})
+
+		// PUT /tasks
+		r.Group(func(r chi.Router) {
+			r.Use(rbac.PermissionInjectorMiddleware(rbac.Permission{Scope: "tasks", Action: "update"}))
+			r.Use(rbac.RBAC(roles))
+			r.Put("/{id}/steps", handler.UpdateStepsHandler)
+		})
+	})
+
 	// TODO: implement task params handler
-	r.Put("/tasks/{id}/params", handler.FakeHandler)
+	// r.Put("/tasks/{id}/params", handler.FakeHandler)
 
-	r.Get("/tasks/{id}/runs/{runID}", handler.GetTaskRunHandler)
-	r.Post("/tasks/{id}/runs/{runID}/retry", handler.RunTaskHandler)
-	r.Get("/tasks/{id}/runs/{runID}/logs", handler.GetTaskRunLogsHandler)
-	r.Get("/tasks/{id}/runs/{runID}/status", handler.GetTaskRunStatusHandler)
 }

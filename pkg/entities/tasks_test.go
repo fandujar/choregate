@@ -11,8 +11,8 @@ import (
 func TestTask(t *testing.T) {
 	task := entities.Task{
 		&entities.TaskConfig{
-			ID:    uuid.New(),
-			Title: "Test Task",
+			ID:   uuid.New(),
+			Name: "Test Task",
 		},
 	}
 

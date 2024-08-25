@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/fandujar/choregate/pkg/entities"
+	"github.com/fandujar/choregate/pkg/rbac"
 	"github.com/fandujar/choregate/pkg/services"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -26,12 +27,38 @@ type UsersHandler struct {
 
 func RegisterUsersRoutes(r chi.Router, service services.UserService) {
 	handler := &UsersHandler{service: service}
+	roles := rbac.SetupRoles()
 
-	r.Get("/users", handler.GetUsersHandler)
-	r.Get("/users/{id}", handler.GetUserHandler)
-	r.Post("/users", handler.CreateUserHandler)
-	r.Put("/users/{id}", handler.UpdateUserHandler)
-	r.Delete("/users/{id}", handler.DeleteUserHandler)
+	r.Route("/users", func(r chi.Router) {
+		// GET /users
+		r.Group(func(r chi.Router) {
+			r.Use(rbac.PermissionInjectorMiddleware(rbac.Permission{Scope: "users", Action: "read"}))
+			r.Use(rbac.RBAC(roles))
+			r.Get("/", handler.GetUsersHandler)
+			r.Get("/{id}", handler.GetUserHandler)
+		})
+
+		// POST /users
+		r.Group(func(r chi.Router) {
+			r.Use(rbac.PermissionInjectorMiddleware(rbac.Permission{Scope: "users", Action: "create"}))
+			r.Use(rbac.RBAC(roles))
+			r.Post("/users", handler.CreateUserHandler)
+		})
+
+		// PUT /users
+		r.Group(func(r chi.Router) {
+			r.Use(rbac.PermissionInjectorMiddleware(rbac.Permission{Scope: "users", Action: "update"}))
+			r.Use(rbac.RBAC(roles))
+			r.Put("/users/{id}", handler.UpdateUserHandler)
+		})
+
+		// DELETE /users
+		r.Group(func(r chi.Router) {
+			r.Use(rbac.PermissionInjectorMiddleware(rbac.Permission{Scope: "users", Action: "delete"}))
+			r.Use(rbac.RBAC(roles))
+			r.Delete("/users/{id}", handler.DeleteUserHandler)
+		})
+	})
 }
 
 // GetUsersHandler handles the GET /users endpoint.

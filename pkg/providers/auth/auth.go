@@ -92,7 +92,7 @@ func (a *AuthProviderImpl) ValidateUserPassword(ctx context.Context, username, p
 	superUser, superUserPassword := os.Getenv("CHOREGATE_SUPERUSER"), os.Getenv("CHOREGATE_SUPERUSER_PASSWORD")
 	if superUser != "" && superUserPassword != "" {
 		if username == superUser && password == superUserPassword {
-			return "superAdmin", true, nil
+			return "admin", true, nil
 		}
 	}
 
@@ -122,8 +122,11 @@ func (a *AuthProviderImpl) GenerateToken(ctx context.Context, username, systemRo
 	_, token, err := a.NewTokenAuth().Encode(
 		map[string]interface{}{
 			"username":    username,
+			"email":       username,
 			"system_role": systemRole,
 			"exp":         time.Now().Add(time.Hour * 24).Unix(),
+			"iat":         time.Now().Unix(),
+			"iss":         "choregate",
 		},
 	)
 	if err != nil {
