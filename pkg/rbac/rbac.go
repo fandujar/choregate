@@ -3,7 +3,6 @@ package rbac
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/jwtauth/v5"
@@ -136,9 +135,6 @@ func RBAC(roles []Role) func(next http.Handler) http.Handler {
 				http.Error(w, "invalid role", http.StatusForbidden)
 				return
 			}
-
-			// print permission
-			fmt.Println("===>> permission: ", permission)
 
 			if !role.HasPermission(permission) {
 				http.Error(w, "permission denied", http.StatusForbidden)
