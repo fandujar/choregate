@@ -119,6 +119,11 @@ func (a *AuthProviderImpl) GenerateToken(ctx context.Context, user *entities.Use
 		return "", err
 	}
 
+	teams, err := a.Service.GetUserTeamsMemberships(ctx, user.ID)
+	if err != nil {
+		return "", err
+	}
+
 	_, token, err := a.NewTokenAuth().Encode(
 		map[string]interface{}{
 			"username":      user.Email,
@@ -126,7 +131,7 @@ func (a *AuthProviderImpl) GenerateToken(ctx context.Context, user *entities.Use
 			"email":         user.Email,
 			"system_role":   user.SystemRole,
 			"organizations": organizations,
-			"teams":         nil,
+			"teams":         teams,
 			"exp":           time.Now().Add(time.Hour * 24).Unix(),
 			"iat":           time.Now().Unix(),
 			"iss":           "choregate",

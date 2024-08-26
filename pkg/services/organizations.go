@@ -230,3 +230,8 @@ func (s *OrganizationService) GetUserByEmail(ctx context.Context, email string) 
 func (s *OrganizationService) GetUserOrganizationsMemberships(ctx context.Context, userID uuid.UUID) ([]*entities.OrganizationMember, error) {
 	return s.organizationRepo.FindMemberMemberships(ctx, userID)
 }
+
+// GetUserTeamsMemberships returns all memberships of a user.
+func (s *OrganizationService) GetUserTeamsMemberships(ctx context.Context, userID uuid.UUID) ([]*entities.TeamMember, error) {
+	return s.teamRepo.FindMemberMemberships(ctx, userID)
+}

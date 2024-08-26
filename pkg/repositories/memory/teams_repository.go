@@ -99,6 +99,48 @@ func (r *InMemoryTeamRepository) RemoveMember(ctx context.Context, teamID, userI
 	return nil
 }
 
+// FindMembers returns all members of a team.
+func (r *InMemoryTeamRepository) FindMembers(ctx context.Context, teamID uuid.UUID) ([]*entities.TeamMember, error) {
+	team, ok := r.teams[teamID]
+	if !ok {
+		return nil, entities.ErrTeamNotFound{}
+	}
+
+	members := make([]*entities.TeamMember, 0, len(team.Members))
+	for _, member := range team.Members {
+		members = append(members, member)
+	}
+
+	return members, nil
+}
+
+// FindMember returns a member of a team.
+func (r *InMemoryTeamRepository) FindMember(ctx context.Context, teamID, userID uuid.UUID) (*entities.TeamMember, error) {
+	team, ok := r.teams[teamID]
+	if !ok {
+		return nil, entities.ErrTeamNotFound{}
+	}
+
+	member, ok := team.Members[userID]
+	if !ok {
+		return nil, entities.ErrMemberNotFound{}
+	}
+
+	return member, nil
+}
+
+// FindMemberMemberships returns all memberships of a member.
+func (r *InMemoryTeamRepository) FindMemberMemberships(ctx context.Context, userID uuid.UUID) ([]*entities.TeamMember, error) {
+	memberships := make([]*entities.TeamMember, 0)
+	for _, team := range r.teams {
+		member, ok := team.Members[userID]
+		if ok {
+			memberships = append(memberships, member)
+		}
+	}
+	return memberships, nil
+}
+
 // UpdateMemberRole updates the role of a member in a team.
 func (r *InMemoryTeamRepository) UpdateMemberRole(ctx context.Context, teamID, userID uuid.UUID, role string) error {
 	team, ok := r.teams[teamID]
