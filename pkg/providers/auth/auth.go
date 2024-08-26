@@ -90,21 +90,6 @@ func (a *AuthProviderImpl) ValidateUserPassword(ctx context.Context, username, p
 	if username == "" || password == "" {
 		return nil, false, nil
 	}
-	superUser, superUserPassword := os.Getenv("CHOREGATE_SUPERUSER"), os.Getenv("CHOREGATE_SUPERUSER_PASSWORD")
-	if superUser != "" && superUserPassword != "" {
-		if username == superUser && password == superUserPassword {
-			user, _ = entities.NewUser(
-				&entities.UserConfig{
-					Slug:       superUser,
-					Name:       superUser,
-					Email:      superUser,
-					Password:   superUserPassword,
-					SystemRole: "admin",
-				},
-			)
-			return user, true, nil
-		}
-	}
 
 	user, err = a.UserService.GetUserByEmail(ctx, username)
 	if err != nil {

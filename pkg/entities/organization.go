@@ -47,6 +47,14 @@ func NewOrganization(config *OrganizationConfig) (*Organization, error) {
 		}
 	}
 
+	if config.Teams == nil {
+		config.Teams = make(map[uuid.UUID]*OrganizationTeam)
+	}
+
+	if config.Members == nil {
+		config.Members = make(map[uuid.UUID]*OrganizationMember)
+	}
+
 	return &Organization{OrganizationConfig: config}, nil
 }
 

@@ -6,16 +6,18 @@ import (
 )
 
 type TeamConfig struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
+	ID      uuid.UUID                 `json:"id"`
+	Name    string                    `json:"name"`
+	Members map[uuid.UUID]*TeamMember `json:"members"`
 }
 
 type Team struct {
 	*TeamConfig
-	Members map[uuid.UUID]*Member `json:"members"`
 }
 
-type Member struct {
+type TeamMember struct {
+	ID     uuid.UUID `json:"id"`
+	TeamID uuid.UUID `json:"team_id"`
 	UserID uuid.UUID `json:"user_id"`
 	Role   string    `json:"role"`
 }
@@ -29,8 +31,11 @@ func NewTeam(config *TeamConfig) (*Team, error) {
 		}
 	}
 
+	if config.Members == nil {
+		config.Members = make(map[uuid.UUID]*TeamMember)
+	}
+
 	return &Team{
 		TeamConfig: config,
-		Members:    make(map[uuid.UUID]*Member),
 	}, nil
 }

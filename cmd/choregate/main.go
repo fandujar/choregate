@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/fandujar/choregate/pkg/controller"
+	"github.com/fandujar/choregate/pkg/entities"
 	"github.com/fandujar/choregate/pkg/providers/auth"
 	"github.com/fandujar/choregate/pkg/providers/tektoncd"
 	"github.com/fandujar/choregate/pkg/repositories"
@@ -186,6 +187,12 @@ func main() {
 		transport.RegisterOrganizationsRoutes(r, *organizationService)
 	})
 
+	// Setup SuperUser if environment variable is set
+	err = SetupSuperUser(*userService, *teamService, *organizationService)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to setup superuser")
+	}
+
 	// Prepare to handle signals
 	// Start the HTTP server
 	shutdown := make(chan bool, 1)
@@ -251,4 +258,84 @@ func CustomLogger() func(next http.Handler) http.Handler {
 		}
 		return http.HandlerFunc(fn)
 	}
+}
+
+func SetupSuperUser(userService services.UserService, teamService services.TeamService, organizationService services.OrganizationService) error {
+	superUserEmail := os.Getenv("CHOREGATE_SUPERUSER_EMAIL")
+	superUserPassword := os.Getenv("CHOREGATE_SUPERUSER_PASSWORD")
+
+	if superUserEmail == "" || superUserPassword == "" {
+		log.Info().Msg("no superuser credentials provided")
+		return nil
+	}
+
+	_, err := userService.GetUserByEmail(context.Background(), superUserEmail)
+	if err == nil {
+		log.Info().Msg("superuser already exists")
+		return nil
+	}
+
+	user, err := entities.NewUser(
+		&entities.UserConfig{
+			Email:      superUserEmail,
+			Password:   superUserPassword,
+			SystemRole: "admin",
+		},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	err = userService.CreateUser(context.Background(), user)
+	if err != nil {
+		return err
+	}
+
+	team, err := entities.NewTeam(
+		&entities.TeamConfig{
+			Name: "superuser",
+		},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	err = teamService.CreateTeam(context.Background(), team)
+	if err != nil {
+		return err
+	}
+
+	organization, err := entities.NewOrganization(
+		&entities.OrganizationConfig{
+			Name: "superuser",
+		},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	err = organizationService.CreateOrganization(context.Background(), organization)
+	if err != nil {
+		return err
+	}
+
+	err = organizationService.AddMember(context.Background(), organization.ID, user.ID, "admin")
+	if err != nil {
+		return err
+	}
+
+	err = teamService.AddMember(context.Background(), team.ID, user.ID, "admin")
+	if err != nil {
+		return err
+	}
+
+	err = organizationService.AddTeam(context.Background(), organization.ID, team.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -12,6 +12,13 @@ type InMemoryTeamRepository struct {
 	teams map[uuid.UUID]*entities.Team
 }
 
+// NewInMemoryTeamRepository creates a new in-memory team repository.
+func NewInMemoryTeamRepository() *InMemoryTeamRepository {
+	return &InMemoryTeamRepository{
+		teams: make(map[uuid.UUID]*entities.Team),
+	}
+}
+
 // FindAll returns all teams in the repository.
 func (r *InMemoryTeamRepository) FindAll(ctx context.Context) ([]*entities.Team, error) {
 	teams := make([]*entities.Team, 0, len(r.teams))
@@ -105,11 +112,4 @@ func (r *InMemoryTeamRepository) UpdateMemberRole(ctx context.Context, teamID, u
 
 	member.Role = role
 	return nil
-}
-
-// NewInMemoryTeamRepository creates a new in-memory team repository.
-func NewInMemoryTeamRepository() *InMemoryTeamRepository {
-	return &InMemoryTeamRepository{
-		teams: make(map[uuid.UUID]*entities.Team),
-	}
 }

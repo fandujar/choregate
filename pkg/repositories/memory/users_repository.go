@@ -12,6 +12,13 @@ type InMemoryUserRepository struct {
 	users map[uuid.UUID]*entities.User
 }
 
+// NewInMemoryUserRepository creates a new in-memory user repository.
+func NewInMemoryUserRepository() *InMemoryUserRepository {
+	return &InMemoryUserRepository{
+		users: make(map[uuid.UUID]*entities.User),
+	}
+}
+
 // FindAll returns all users in the repository.
 func (r *InMemoryUserRepository) FindAll(ctx context.Context) ([]*entities.User, error) {
 	users := make([]*entities.User, 0, len(r.users))
@@ -55,11 +62,4 @@ func (r *InMemoryUserRepository) Delete(ctx context.Context, id uuid.UUID) error
 	}
 	delete(r.users, id)
 	return nil
-}
-
-// NewInMemoryUserRepository creates a new in-memory user repository.
-func NewInMemoryUserRepository() *InMemoryUserRepository {
-	return &InMemoryUserRepository{
-		users: make(map[uuid.UUID]*entities.User),
-	}
 }

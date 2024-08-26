@@ -83,5 +83,9 @@ func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*entiti
 		}
 	}
 
+	if user == nil {
+		return nil, entities.ErrUserNotFound{}
+	}
+
 	return user, nil
 }
