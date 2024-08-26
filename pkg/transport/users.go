@@ -22,10 +22,10 @@ type User struct {
 }
 
 type UsersHandler struct {
-	service services.UserService
+	service services.OrganizationService
 }
 
-func RegisterUsersRoutes(r chi.Router, service services.UserService) {
+func RegisterUsersRoutes(r chi.Router, service services.OrganizationService) {
 	handler := &UsersHandler{service: service}
 	roles := rbac.SetupRoles()
 

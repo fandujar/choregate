@@ -28,21 +28,21 @@ type AuthProvider interface {
 
 // AuthProviderImpl is the default implementation of the AuthProvider interface
 type AuthProviderImpl struct {
-	JWTSecret   string
-	JWTAuth     *jwtauth.JWTAuth
-	UserService *services.UserService
+	JWTSecret string
+	JWTAuth   *jwtauth.JWTAuth
+	Service   *services.OrganizationService
 }
 
 // NewAuthProvider creates a new AuthProvider
-func NewAuthProvider(userService *services.UserService) (AuthProvider, error) {
+func NewAuthProvider(service *services.OrganizationService) (AuthProvider, error) {
 	secret := os.Getenv("CHOREGATE_JWT_SECRET")
 	if secret == "" {
 		return nil, errors.New("missing CHOREGATE_JWT_SECRET environment variable")
 	}
 
 	return &AuthProviderImpl{
-		JWTSecret:   secret,
-		UserService: userService,
+		JWTSecret: secret,
+		Service:   service,
 	}, nil
 }
 
@@ -91,7 +91,7 @@ func (a *AuthProviderImpl) ValidateUserPassword(ctx context.Context, username, p
 		return nil, false, nil
 	}
 
-	user, err = a.UserService.GetUserByEmail(ctx, username)
+	user, err = a.Service.GetUserByEmail(ctx, username)
 	if err != nil {
 		return nil, false, err
 	}

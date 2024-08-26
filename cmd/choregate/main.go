@@ -92,12 +92,14 @@ func main() {
 	// Create services
 	taskService := services.NewTaskService(taskRepository, taskRunRepository, tektonClient)
 	triggerService := services.NewTriggerService(triggerRepository)
-	userService := services.NewUserService(userRepository)
-	teamService := services.NewTeamService(teamRepository)
-	organizationService := services.NewOrganizationService(organizationRepository)
+	organizationService := services.NewOrganizationService(
+		organizationRepository,
+		teamRepository,
+		userRepository,
+	)
 
 	// Create the auth provider
-	authProvider, err := auth.NewAuthProvider(userService)
+	authProvider, err := auth.NewAuthProvider(organizationService)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create auth provider")
 	}
@@ -182,13 +184,13 @@ func main() {
 		)
 		transport.RegisterTasksRoutes(r, *taskService)
 		transport.RegisterTriggersRoutes(r, *triggerService)
-		transport.RegisterUsersRoutes(r, *userService)
-		transport.RegisterTeamsRoutes(r, *teamService)
+		transport.RegisterUsersRoutes(r, *organizationService)
+		transport.RegisterTeamsRoutes(r, *organizationService)
 		transport.RegisterOrganizationsRoutes(r, *organizationService)
 	})
 
 	// Setup SuperUser if environment variable is set
-	err = SetupSuperUser(*userService, *teamService, *organizationService)
+	err = SetupSuperUser(*organizationService)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to setup superuser")
 	}
@@ -260,7 +262,7 @@ func CustomLogger() func(next http.Handler) http.Handler {
 	}
 }
 
-func SetupSuperUser(userService services.UserService, teamService services.TeamService, organizationService services.OrganizationService) error {
+func SetupSuperUser(service services.OrganizationService) error {
 	superUserEmail := os.Getenv("CHOREGATE_SUPERUSER_EMAIL")
 	superUserPassword := os.Getenv("CHOREGATE_SUPERUSER_PASSWORD")
 
@@ -269,7 +271,7 @@ func SetupSuperUser(userService services.UserService, teamService services.TeamS
 		return nil
 	}
 
-	_, err := userService.GetUserByEmail(context.Background(), superUserEmail)
+	_, err := service.GetUserByEmail(context.Background(), superUserEmail)
 	if err == nil {
 		log.Info().Msg("superuser already exists")
 		return nil
@@ -287,7 +289,7 @@ func SetupSuperUser(userService services.UserService, teamService services.TeamS
 		return err
 	}
 
-	err = userService.CreateUser(context.Background(), user)
+	err = service.CreateUser(context.Background(), user)
 	if err != nil {
 		return err
 	}
@@ -302,7 +304,7 @@ func SetupSuperUser(userService services.UserService, teamService services.TeamS
 		return err
 	}
 
-	err = teamService.CreateTeam(context.Background(), team)
+	err = service.CreateTeam(context.Background(), team)
 	if err != nil {
 		return err
 	}
@@ -317,22 +319,22 @@ func SetupSuperUser(userService services.UserService, teamService services.TeamS
 		return err
 	}
 
-	err = organizationService.CreateOrganization(context.Background(), organization)
+	err = service.CreateOrganization(context.Background(), organization)
 	if err != nil {
 		return err
 	}
 
-	err = organizationService.AddMember(context.Background(), organization.ID, user.ID, "admin")
+	err = service.AddOrganizationMember(context.Background(), organization.ID, user.ID, "admin")
 	if err != nil {
 		return err
 	}
 
-	err = teamService.AddMember(context.Background(), team.ID, user.ID, "admin")
+	err = service.AddTeamMember(context.Background(), team.ID, user.ID, "admin")
 	if err != nil {
 		return err
 	}
 
-	err = organizationService.AddTeam(context.Background(), organization.ID, team.ID)
+	err = service.AddTeam(context.Background(), organization.ID, team.ID)
 	if err != nil {
 		return err
 	}

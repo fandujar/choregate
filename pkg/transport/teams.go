@@ -26,10 +26,10 @@ type TeamMember struct {
 }
 
 type TeamsHandler struct {
-	service services.TeamService
+	service services.OrganizationService
 }
 
-func RegisterTeamsRoutes(r chi.Router, service services.TeamService) {
+func RegisterTeamsRoutes(r chi.Router, service services.OrganizationService) {
 	handler := &TeamsHandler{service: service}
 	roles := rbac.SetupRoles()
 
