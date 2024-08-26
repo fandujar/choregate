@@ -75,8 +75,9 @@ func (r *InMemoryTeamRepository) AddMember(ctx context.Context, teamID, userID u
 		return entities.ErrMemberAlreadyExists{}
 	}
 
-	team.Members[userID] = &entities.Member{
+	team.Members[userID] = &entities.TeamMember{
 		UserID: userID,
+		TeamID: teamID,
 		Role:   role,
 	}
 

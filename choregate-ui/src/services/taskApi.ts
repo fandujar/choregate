@@ -24,7 +24,7 @@ const getSteps = async (taskID: string) => {
   try {
     const response = await api.get(`/tasks/${taskID}/steps`);
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     if (error.response.status === 404) {
       return [];
     }
@@ -36,7 +36,7 @@ const getTasks = async () => {
   try {
     const response = await api.get('/tasks');
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     if (error.response.status === 404) {
       return [];
     }

@@ -94,7 +94,7 @@ type TaskRunsLogsProps = {
 
 const TaskRunsLogs = (props: TaskRunsLogsProps) => {
     const { taskID, taskRunID } = props
-    const [taskRunLogs, setTaskRunLogs] = useRecoilState(TaskRunLogsAtom)
+    const [taskRunLogs, setTaskRunLogs] = useRecoilState<TaskRunLogsType>(TaskRunLogsAtom)
 
     const handleViewLogs = () => {
         let response = getTaskRunLogs(taskID, taskRunID)
@@ -137,4 +137,8 @@ const TaskRunsLogs = (props: TaskRunsLogsProps) => {
             </SheetContent>
         </Sheet>
     )
+}
+
+type TaskRunLogsType = {
+    [key: string]: string;
 }

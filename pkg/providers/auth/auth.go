@@ -116,13 +116,15 @@ func (a *AuthProviderImpl) RefreshToken(ctx context.Context, token string) (stri
 func (a *AuthProviderImpl) GenerateToken(ctx context.Context, user *entities.User) (string, error) {
 	_, token, err := a.NewTokenAuth().Encode(
 		map[string]interface{}{
-			"username":    user.Email,
-			"user_id":     user.ID.String(),
-			"email":       user.Email,
-			"system_role": user.SystemRole,
-			"exp":         time.Now().Add(time.Hour * 24).Unix(),
-			"iat":         time.Now().Unix(),
-			"iss":         "choregate",
+			"username":      user.Email,
+			"user_id":       user.ID.String(),
+			"email":         user.Email,
+			"system_role":   user.SystemRole,
+			"organizations": nil,
+			"teams":         nil,
+			"exp":           time.Now().Add(time.Hour * 24).Unix(),
+			"iat":           time.Now().Unix(),
+			"iss":           "choregate",
 		},
 	)
 	if err != nil {
