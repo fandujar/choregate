@@ -52,6 +52,7 @@ func main() {
 	var userRepository repositories.UserRepository
 	var triggerRepository repositories.TriggerRepository
 	var teamRepository repositories.TeamRepository
+	var organizationRepository repositories.OrganizationRepository
 
 	repositoryType := os.Getenv("CHOREGATE_REPOSITORY_TYPE")
 	if repositoryType == "postgres" {
@@ -72,6 +73,7 @@ func main() {
 		userRepository = memory.NewInMemoryUserRepository()
 		triggerRepository = memory.NewInMemoryTriggerRepository()
 		teamRepository = memory.NewInMemoryTeamRepository()
+		organizationRepository = memory.NewInMemoryOrganizationRepository()
 	}
 
 	// Print the type of each repository being used
@@ -90,6 +92,8 @@ func main() {
 	taskService := services.NewTaskService(taskRepository, taskRunRepository, tektonClient)
 	triggerService := services.NewTriggerService(triggerRepository)
 	userService := services.NewUserService(userRepository)
+	teamService := services.NewTeamService(teamRepository)
+	organizationService := services.NewOrganizationService(organizationRepository)
 
 	// Create the auth provider
 	authProvider, err := auth.NewAuthProvider(userService)
@@ -178,6 +182,8 @@ func main() {
 		transport.RegisterTasksRoutes(r, *taskService)
 		transport.RegisterTriggersRoutes(r, *triggerService)
 		transport.RegisterUsersRoutes(r, *userService)
+		transport.RegisterTeamsRoutes(r, *teamService)
+		transport.RegisterOrganizationsRoutes(r, *organizationService)
 	})
 
 	// Prepare to handle signals

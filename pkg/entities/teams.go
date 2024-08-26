@@ -1,6 +1,9 @@
 package entities
 
-import "github.com/google/uuid"
+import (
+	"github.com/fandujar/choregate/pkg/utils"
+	"github.com/google/uuid"
+)
 
 type TeamConfig struct {
 	ID   uuid.UUID `json:"id"`
@@ -18,6 +21,14 @@ type Member struct {
 }
 
 func NewTeam(config *TeamConfig) (*Team, error) {
+	var err error
+	if config.ID == uuid.Nil {
+		config.ID, err = utils.GenerateID()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &Team{
 		TeamConfig: config,
 		Members:    make(map[uuid.UUID]*Member),
