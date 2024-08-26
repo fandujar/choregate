@@ -87,6 +87,41 @@ func (r *InMemoryOrganizationRepository) RemoveMember(ctx context.Context, organ
 	return nil
 }
 
+func (r *InMemoryOrganizationRepository) FindMembers(ctx context.Context, organizationID uuid.UUID) ([]*entities.OrganizationMember, error) {
+	organization, ok := r.organizations[organizationID]
+	if !ok {
+		return nil, entities.ErrOrganizationNotFound{}
+	}
+	members := make([]*entities.OrganizationMember, 0, len(organization.Members))
+	for _, member := range organization.Members {
+		members = append(members, member)
+	}
+	return members, nil
+}
+
+func (r *InMemoryOrganizationRepository) FindMember(ctx context.Context, organizationID, userID uuid.UUID) (*entities.OrganizationMember, error) {
+	organization, ok := r.organizations[organizationID]
+	if !ok {
+		return nil, entities.ErrOrganizationNotFound{}
+	}
+	member, ok := organization.Members[userID]
+	if !ok {
+		return nil, entities.ErrOrganizationMemberNotFound{}
+	}
+	return member, nil
+}
+
+func (r *InMemoryOrganizationRepository) FindMemberMemberships(ctx context.Context, userID uuid.UUID) ([]*entities.OrganizationMember, error) {
+	memberships := make([]*entities.OrganizationMember, 0)
+	for _, organization := range r.organizations {
+		member, ok := organization.Members[userID]
+		if ok {
+			memberships = append(memberships, member)
+		}
+	}
+	return memberships, nil
+}
+
 func (r *InMemoryOrganizationRepository) UpdateMemberRole(ctx context.Context, organizationID, userID uuid.UUID, role string) error {
 	organization, ok := r.organizations[organizationID]
 	if !ok {

@@ -114,13 +114,18 @@ func (a *AuthProviderImpl) RefreshToken(ctx context.Context, token string) (stri
 
 // GetToken is a method that will be implemented by the auth provider
 func (a *AuthProviderImpl) GenerateToken(ctx context.Context, user *entities.User) (string, error) {
+	organizations, err := a.Service.GetUserOrganizationsMemberships(ctx, user.ID)
+	if err != nil {
+		return "", err
+	}
+
 	_, token, err := a.NewTokenAuth().Encode(
 		map[string]interface{}{
 			"username":      user.Email,
 			"user_id":       user.ID.String(),
 			"email":         user.Email,
 			"system_role":   user.SystemRole,
-			"organizations": nil,
+			"organizations": organizations,
 			"teams":         nil,
 			"exp":           time.Now().Add(time.Hour * 24).Unix(),
 			"iat":           time.Now().Unix(),

@@ -22,6 +22,12 @@ type OrganizationRepository interface {
 	AddMember(ctx context.Context, organizationID, userID uuid.UUID, role string) error
 	// RemoveMember removes a member from an organization.
 	RemoveMember(ctx context.Context, organizationID, userID uuid.UUID) error
+	// FindMembers returns all members of an organization.
+	FindMembers(ctx context.Context, organizationID uuid.UUID) ([]*entities.OrganizationMember, error)
+	// FindMember returns a member of an organization.
+	FindMember(ctx context.Context, organizationID, userID uuid.UUID) (*entities.OrganizationMember, error)
+	// FindMemberMemberships returns all memberships of a member.
+	FindMemberMemberships(ctx context.Context, userID uuid.UUID) ([]*entities.OrganizationMember, error)
 	// UpdateMemberRole updates the role of a member in an organization.
 	UpdateMemberRole(ctx context.Context, organizationID, userID uuid.UUID, role string) error
 	// AddTeam adds a team to an organization.
