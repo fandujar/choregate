@@ -130,6 +130,10 @@ func (c *TektonClientImpl) Logs(ctx context.Context, taskRun *tektonAPI.TaskRun)
 		return nil, err
 	}
 
+	if pod.Status.Phase == v1.PodPending {
+		return nil, fmt.Errorf("pod is pending")
+	}
+
 	var logs map[string]string = make(map[string]string)
 
 	for _, container := range pod.Spec.Containers {
