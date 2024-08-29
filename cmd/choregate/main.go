@@ -56,6 +56,10 @@ func main() {
 	var organizationRepository repositories.OrganizationRepository
 
 	repositoryType := os.Getenv("CHOREGATE_REPOSITORY_TYPE")
+	if repositoryType == "" {
+		repositoryType = "memory"
+	}
+
 	if repositoryType == "postgres" {
 		var err error
 		ctx := context.Background()
