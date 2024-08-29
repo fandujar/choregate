@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import { UserAtom } from '@/atoms/User';
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             id: data.user_id,
             username: data.username,
             email: data.email,
-            systemRole: data.system_role,
+            systemRole: data.system_role
         });
         navigate('/');
     }

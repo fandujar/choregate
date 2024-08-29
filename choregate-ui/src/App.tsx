@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/sonner';
 
 function App() {
   return (
-    <div className='bg-slate-200 text-slate-950 h-full'>
+    <div className='bg-gray-100 text-slate-950 h-full'>
     <RecoilRoot>
     <BrowserRouter>
     <AuthProvider>
