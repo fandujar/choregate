@@ -49,7 +49,7 @@ func (r *PostgresTaskRunRepository) FindAll(ctx context.Context) ([]*entities.Ta
 				TaskRun: &tekton.TaskRun{},
 			},
 		}
-		err := rows.Scan(&taskRun.ID, &taskRun.TaskID, &taskRun.Status, &taskRun.Spec)
+		err := rows.Scan(&taskRun.ID, &taskRun.TaskID, &taskRun.Status, &taskRun.TaskRun)
 		if err != nil {
 			return nil, err
 		}
@@ -72,7 +72,7 @@ func (r *PostgresTaskRunRepository) FindByID(ctx context.Context, id uuid.UUID) 
 			TaskRun: &tekton.TaskRun{},
 		},
 	}
-	err = conn.QueryRow(ctx, "SELECT * FROM task_runs WHERE id = $1", id).Scan(&taskRun.ID, &taskRun.TaskID, &taskRun.Status, &taskRun.Spec)
+	err = conn.QueryRow(ctx, "SELECT * FROM task_runs WHERE id = $1", id).Scan(&taskRun.ID, &taskRun.TaskID, &taskRun.Status, &taskRun.TaskRun)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (r *PostgresTaskRunRepository) FindByTaskID(ctx context.Context, taskID uui
 				TaskRun: &tekton.TaskRun{},
 			},
 		}
-		err := rows.Scan(&taskRun.ID, &taskRun.TaskID, &taskRun.Status, &taskRun.Spec)
+		err := rows.Scan(&taskRun.ID, &taskRun.TaskID, &taskRun.Status, &taskRun.TaskRun)
 		if err != nil {
 			return nil, err
 		}
@@ -122,7 +122,7 @@ func (r *PostgresTaskRunRepository) Create(ctx context.Context, taskRun *entitie
 	}
 	defer conn.Release()
 
-	_, err = conn.Exec(ctx, "INSERT INTO task_runs (id, task_id, status, spec) VALUES ($1, $2, $3, $4)", taskRun.ID, taskRun.TaskID, taskRun.Status, taskRun.Spec)
+	_, err = conn.Exec(ctx, "INSERT INTO task_runs (id, task_id, status, task_run) VALUES ($1, $2, $3, $4)", taskRun.ID, taskRun.TaskID, taskRun.Status, taskRun.TaskRun)
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func (r *PostgresTaskRunRepository) Update(ctx context.Context, taskRun *entitie
 	}
 	defer conn.Release()
 
-	_, err = conn.Exec(ctx, "UPDATE task_runs SET status = $2, spec = $3 WHERE id = $1", taskRun.ID, taskRun.Status, taskRun.Spec)
+	_, err = conn.Exec(ctx, "UPDATE task_runs SET status = $2, task_run = $3 WHERE id = $1", taskRun.ID, taskRun.Status, taskRun.TaskRun)
 	if err != nil {
 		return err
 	}
