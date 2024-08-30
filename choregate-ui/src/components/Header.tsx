@@ -2,11 +2,11 @@ import { ListTodo } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { useAuth } from '@/hooks/Auth';
-import { useRecoilState } from 'recoil';
-import { UserAtom } from '@/atoms/User';
+// import { useRecoilState } from 'recoil';
+// import { UserAtom } from '@/atoms/User';
 
 export const Header = () => {
-    const [user, _] = useRecoilState(UserAtom);
+    // const [user, _] = useRecoilState(UserAtom);
     const { logout } = useAuth();
 
     const handleLogout = async (e: any) => {
