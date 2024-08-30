@@ -69,6 +69,11 @@ func main() {
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to create postgres task repository")
 		}
+		taskRunRepository = memory.NewInMemoryTaskRunRepository()
+		userRepository = memory.NewInMemoryUserRepository()
+		triggerRepository = memory.NewInMemoryTriggerRepository()
+		teamRepository = memory.NewInMemoryTeamRepository()
+		organizationRepository = memory.NewInMemoryOrganizationRepository()
 	}
 
 	if repositoryType == "memory" {
