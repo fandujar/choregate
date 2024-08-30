@@ -5,7 +5,9 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/fandujar/choregate/pkg/entities"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/google/uuid"
 )
 
 type Permission struct {
@@ -141,7 +143,23 @@ func RBAC(roles []Role) func(next http.Handler) http.Handler {
 				return
 			}
 
-			next.ServeHTTP(w, r)
+			organizations, _ := tokenMap["organizations"].([]*entities.Organization)
+			teams, _ := tokenMap["teams"].([]*entities.Team)
+			userID, _ := tokenMap["user_id"].(string)
+
+			owner, err := uuid.Parse(userID)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			ctx = context.WithValue(ctx, "taskScope", &entities.TaskScope{
+				Owner:         owner,
+				Teams:         teams,
+				Organizations: organizations,
+			})
+
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }

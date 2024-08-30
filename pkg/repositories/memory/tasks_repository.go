@@ -13,35 +13,67 @@ type InMemoryTaskRepository struct {
 }
 
 // FindAll returns all tasks in the repository.
-func (r *InMemoryTaskRepository) FindAll(ctx context.Context, taskPermissions *entities.TaskPermissions) ([]*entities.Task, error) {
+func (r *InMemoryTaskRepository) FindAll(ctx context.Context, scope *entities.TaskScope) ([]*entities.Task, error) {
 	// TODO: Implement FindAll method with context
 	tasks := make([]*entities.Task, 0, len(r.tasks))
 	for _, task := range r.tasks {
-		if task.TaskPermissions == nil {
+		if task.TaskScope == nil {
 			tasks = append(tasks, task)
 		}
 
-		if task.TaskPermissions != nil && taskPermissions.Owner.Owner == task.Owner.Owner {
+		if task.TaskScope != nil && scope.Owner == task.TaskScope.Owner {
 			tasks = append(tasks, task)
+		}
+
+		for _, organization := range task.TaskScope.Organizations {
+			for _, org := range scope.Organizations {
+				if organization == org {
+					tasks = append(tasks, task)
+				}
+			}
+		}
+
+		for _, team := range task.TaskScope.Teams {
+			for _, t := range scope.Teams {
+				if team == t {
+					tasks = append(tasks, task)
+				}
+			}
 		}
 	}
 	return tasks, nil
 }
 
 // FindByID returns the task with the specified ID.
-func (r *InMemoryTaskRepository) FindByID(ctx context.Context, id uuid.UUID, taskPermissions *entities.TaskPermissions) (*entities.Task, error) {
+func (r *InMemoryTaskRepository) FindByID(ctx context.Context, id uuid.UUID, scope *entities.TaskScope) (*entities.Task, error) {
 	// TODO: Implement FindByID method with context
 	task, ok := r.tasks[id]
 	if !ok {
 		return nil, entities.ErrTaskNotFound{}
 	}
 
-	if task.TaskPermissions == nil {
+	if task.TaskScope == nil {
 		return task, nil
 	}
 
-	if task.TaskPermissions != nil && taskPermissions.Owner.Owner == task.Owner.Owner {
+	if task.TaskScope != nil && scope != nil && scope.Owner == task.TaskScope.Owner {
 		return task, nil
+	}
+
+	for _, organization := range task.TaskScope.Organizations {
+		for _, org := range scope.Organizations {
+			if organization == org {
+				return task, nil
+			}
+		}
+	}
+
+	for _, team := range task.TaskScope.Teams {
+		for _, t := range scope.Teams {
+			if team == t {
+				return task, nil
+			}
+		}
 	}
 
 	return nil, entities.ErrTaskNotFound{}

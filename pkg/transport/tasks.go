@@ -33,7 +33,10 @@ func NewTaskHandler(service services.TaskService) *TaskHandler {
 
 // GetTasksHandler handles the GET /tasks endpoint.
 func (h *TaskHandler) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
-	tasks, err := h.service.FindAll(r.Context(), nil)
+	ctx := r.Context()
+	scope := h.service.GetTaskScopeFromContext(ctx)
+
+	tasks, err := h.service.FindAll(r.Context(), scope)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -45,6 +48,11 @@ func (h *TaskHandler) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 // GetTaskHandler handles the GET /tasks/{id} endpoint.
 func (h *TaskHandler) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	scope := h.service.GetTaskScopeFromContext(r.Context())
+	if scope == nil {
+		http.Error(w, "invalid task scope", http.StatusBadRequest)
+		return
+	}
 
 	taskID, err := uuid.Parse(id)
 	if taskID == uuid.Nil || err != nil {
@@ -53,7 +61,7 @@ func (h *TaskHandler) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := h.service.FindByID(r.Context(), taskID, nil)
+	task, err := h.service.FindByID(r.Context(), taskID, scope)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -71,9 +79,19 @@ func (h *TaskHandler) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	ctx := r.Context()
+	scope := h.service.GetTaskScopeFromContext(ctx)
+	if scope == nil {
+		http.Error(w, "invalid task scope", http.StatusBadRequest)
+		return
+	}
+
 	taskConfig := entities.TaskConfig{
 		ID:   task.ID,
 		Name: task.Name,
+		TaskScope: &entities.TaskScope{
+			Owner: scope.Owner,
+		},
 	}
 
 	t, err := entities.NewTask(&taskConfig)
@@ -95,6 +113,11 @@ func (h *TaskHandler) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 func (h *TaskHandler) RunTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	runID := chi.URLParam(r, "taskRunID")
+	scope := h.service.GetTaskScopeFromContext(r.Context())
+	if scope == nil {
+		http.Error(w, "invalid task scope", http.StatusBadRequest)
+		return
+	}
 
 	taskID := uuid.MustParse(id)
 	if taskID == uuid.Nil {
@@ -114,7 +137,7 @@ func (h *TaskHandler) RunTaskHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err := h.service.Run(r.Context(), taskID, taskRunID)
+	err := h.service.Run(r.Context(), taskID, taskRunID, scope)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -126,6 +149,12 @@ func (h *TaskHandler) RunTaskHandler(w http.ResponseWriter, r *http.Request) {
 // UpdateStepsHandler handles the PUT /tasks/{id}/steps endpoint.
 func (h *TaskHandler) UpdateStepsHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+
+	scope := h.service.GetTaskScopeFromContext(r.Context())
+	if scope == nil {
+		http.Error(w, "invalid task scope", http.StatusBadRequest)
+		return
+	}
 
 	taskID := uuid.MustParse(id)
 	if taskID == uuid.Nil {
@@ -140,7 +169,7 @@ func (h *TaskHandler) UpdateStepsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	task, err := h.service.FindByID(r.Context(), taskID, nil)
+	task, err := h.service.FindByID(r.Context(), taskID, scope)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -160,13 +189,19 @@ func (h *TaskHandler) UpdateStepsHandler(w http.ResponseWriter, r *http.Request)
 // GetTaskStepsHandler handles the GET /tasks/{id}/steps endpoint.
 func (h *TaskHandler) GetTaskStepsHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	scope := h.service.GetTaskScopeFromContext(r.Context())
+	if scope == nil {
+		http.Error(w, "invalid task scope", http.StatusBadRequest)
+		return
+	}
+
 	taskID := uuid.MustParse(id)
 	if taskID == uuid.Nil {
 		http.Error(w, "invalid task ID", http.StatusBadRequest)
 		return
 	}
 
-	task, err := h.service.FindByID(r.Context(), taskID, nil)
+	task, err := h.service.FindByID(r.Context(), taskID, scope)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
