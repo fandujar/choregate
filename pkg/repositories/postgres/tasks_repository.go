@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"os"
 
 	"github.com/fandujar/choregate/pkg/entities"
 	"github.com/google/uuid"
@@ -13,6 +12,18 @@ import (
 // PostgresTaskRepository is a postgres task repository.
 type PostgresTaskRepository struct {
 	pool *pgxpool.Pool
+}
+
+// NewPostgresTaskRepository creates a new instance of PostgresTaskRepository.
+func NewPostgresTaskRepository(ctx context.Context) (*PostgresTaskRepository, error) {
+	pool, err := setupPool(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PostgresTaskRepository{
+		pool: pool,
+	}, nil
 }
 
 // FindAll returns all tasks in the repository.
@@ -208,47 +219,4 @@ func (r *PostgresTaskRepository) Delete(ctx context.Context, id uuid.UUID) error
 	}
 
 	return err
-}
-
-// NewPostgresTaskRepository creates a new instance of PostgresTaskRepository.
-func NewPostgresTaskRepository(ctx context.Context) (*PostgresTaskRepository, error) {
-	host := os.Getenv("DATABASE_HOST")
-	if host == "" {
-		host = "localhost"
-	}
-
-	port := os.Getenv("DATABASE_PORT")
-	if port == "" {
-		port = "5432"
-	}
-
-	user := os.Getenv("DATABASE_USER")
-	if user == "" {
-		user = "choregate"
-	}
-
-	password := os.Getenv("DATABASE_PASSWORD")
-	if password == "" {
-		password = "choregate"
-	}
-
-	database := os.Getenv("DATABASE_NAME")
-	if database == "" {
-		database = "choregate"
-	}
-
-	databaseURL := "postgres://" + user + ":" + password + "@" + host + ":" + port + "/" + database
-	dbConfig, err := pgxpool.ParseConfig(databaseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	pool, err := pgxpool.NewWithConfig(ctx, dbConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	return &PostgresTaskRepository{
-		pool: pool,
-	}, nil
 }

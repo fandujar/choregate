@@ -69,7 +69,10 @@ func main() {
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to create postgres task repository")
 		}
-		taskRunRepository = memory.NewInMemoryTaskRunRepository()
+		taskRunRepository, err = postgres.NewPostgresTaskRunRepository(ctx)
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to create postgres task run repository")
+		}
 		userRepository = memory.NewInMemoryUserRepository()
 		triggerRepository = memory.NewInMemoryTriggerRepository()
 		teamRepository = memory.NewInMemoryTeamRepository()
