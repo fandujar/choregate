@@ -7,6 +7,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 import { TabsContent } from '@radix-ui/react-tabs';
 import { Button } from "./ui/button";
+import { TaskRunLogsType } from "@/types/Task";
 
 type TaskRunLogsProps = {
     taskID: string
