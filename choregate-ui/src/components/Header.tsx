@@ -2,8 +2,11 @@ import { ListTodo } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { useAuth } from '@/hooks/Auth';
+import { useRecoilState } from 'recoil';
+import { UserAtom } from '@/atoms/User';
 
 export const Header = () => {
+    const [user, _] = useRecoilState(UserAtom);
     const { logout } = useAuth();
 
     const handleLogout = async (e: any) => {
@@ -26,6 +29,9 @@ export const Header = () => {
                     </Avatar>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className='absolute right-0'>
+                    <div className='p-2 bg-white rounded shadow-md'>
+                        <a href='/profile' className='block'>Profile</a>
+                    </div>
                     <div className='p-2 bg-white rounded shadow-md'>
                         <a onClick={handleLogout} className='block' role="button">Logout</a>
                     </div>

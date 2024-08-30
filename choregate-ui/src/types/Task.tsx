@@ -17,3 +17,7 @@ export type TaskRunType = {
     Status?: string;
     CreatedAt?: string;
 }
+
+export type TaskRunLogsType = {
+    [key: string]: string;
+}
