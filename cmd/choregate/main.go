@@ -91,6 +91,7 @@ func main() {
 	log.Debug().Msgf("type of userRepository: %T", userRepository)
 	log.Debug().Msgf("type of triggerRepository: %T", triggerRepository)
 	log.Debug().Msgf("type of teamRepository: %T", teamRepository)
+	log.Debug().Msgf("type of organizationRepository: %T", organizationRepository)
 
 	// Initialize tekton client
 	tektonClient, err := tektoncd.NewTektonClient()
