@@ -25,18 +25,20 @@ func (r *InMemoryTaskRepository) FindAll(ctx context.Context, scope *entities.Ta
 			tasks = append(tasks, task)
 		}
 
-		for _, organization := range task.TaskScope.Organizations {
-			for _, org := range scope.Organizations {
-				if organization == org {
-					tasks = append(tasks, task)
+		if task.TaskScope != nil && scope != nil {
+			for _, organization := range task.TaskScope.Organizations {
+				for _, org := range scope.Organizations {
+					if organization == org {
+						tasks = append(tasks, task)
+					}
 				}
 			}
-		}
 
-		for _, team := range task.TaskScope.Teams {
-			for _, t := range scope.Teams {
-				if team == t {
-					tasks = append(tasks, task)
+			for _, team := range task.TaskScope.Teams {
+				for _, t := range scope.Teams {
+					if team == t {
+						tasks = append(tasks, task)
+					}
 				}
 			}
 		}
@@ -60,18 +62,20 @@ func (r *InMemoryTaskRepository) FindByID(ctx context.Context, id uuid.UUID, sco
 		return task, nil
 	}
 
-	for _, organization := range task.TaskScope.Organizations {
-		for _, org := range scope.Organizations {
-			if organization == org {
-				return task, nil
+	if task.TaskScope != nil && scope != nil {
+		for _, organization := range task.TaskScope.Organizations {
+			for _, org := range scope.Organizations {
+				if organization == org {
+					return task, nil
+				}
 			}
 		}
-	}
 
-	for _, team := range task.TaskScope.Teams {
-		for _, t := range scope.Teams {
-			if team == t {
-				return task, nil
+		for _, team := range task.TaskScope.Teams {
+			for _, t := range scope.Teams {
+				if team == t {
+					return task, nil
+				}
 			}
 		}
 	}
