@@ -1,4 +1,4 @@
-.PHONY: up down setup-env prune
+.PHONY: up down setup-env
 
 up: setup-env
 	docker compose -f hack/development/docker-compose.yml up --build
