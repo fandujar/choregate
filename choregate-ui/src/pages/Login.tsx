@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from 'sonner';
 
 export const LoginPage = () => {
     const [credentials, setCredentials] = useState({ username: '', password: '' });
@@ -26,6 +27,7 @@ export const LoginPage = () => {
                 login(data);
             } else {
                 console.error('Login failed');
+                toast.error('email or password is incorrect');
             }
         } catch (error) {
             console.error('Error logging in', error);
