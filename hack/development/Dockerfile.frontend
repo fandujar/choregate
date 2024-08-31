@@ -1,6 +1,5 @@
 FROM node:22.1-alpine
 
-ENV API_BASE_URL=http://choregate-backend:8080
 ENV NODE_ENV=dev
 WORKDIR /app
 

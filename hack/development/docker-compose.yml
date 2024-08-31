@@ -12,7 +12,6 @@ x-environment-variables: &common-env-vars
   CHOREGATE_SUPERUSER_PASSWORD: password
   CHOREGATE_REPOSITORY_TYPE: memory
   KUBECONFIG: /tmp/kind-kubeconfig.yaml
-  API_BASE_URL: http://choregate-backend:8080
 
 services:
   backend:
@@ -81,7 +80,7 @@ services:
         condition: service_healthy
     environment:
       - GOOSE_DRIVER=postgres
-      - GOOSE_DBSTRING=postgres://choregate:choregate@db:5432/choregate?sslmode=disable
+      - GOOSE_DBSTRING=postgres://choregate:choregate@localhost:5432/choregate?sslmode=disable
       - GOOSE_MIGRATION_DIR=/app/migrations
     volumes:
       - ../../migrations:/app/migrations
