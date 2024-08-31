@@ -4,7 +4,7 @@ type TaskSettingsProps = {
     taskID: string
 }
 
-export const TaskSettings = (props: TaskSettingsProps) => {
+export const TaskSettings = (_: TaskSettingsProps) => {
     return (
         <Button className="bg-pink-700 text-white">
             Settings

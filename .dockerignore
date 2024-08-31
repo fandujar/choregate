@@ -1,0 +1,9 @@
+# Ignore files and directories
+node_modules
+dist
+build
+*.log
+
+# Ignore specific files
+.env
+.DS_Store
