@@ -31,13 +31,13 @@ func NewTaskService(taskRepo repositories.TaskRepository, taskRunRepo repositori
 }
 
 // FindAll returns all tasks.
-func (s *TaskService) FindAll(ctx context.Context) ([]*entities.Task, error) {
-	return s.taskRepo.FindAll(ctx)
+func (s *TaskService) FindAll(ctx context.Context, scope *entities.TaskScope) ([]*entities.Task, error) {
+	return s.taskRepo.FindAll(ctx, scope)
 }
 
 // FindByID returns a task by ID.
-func (s *TaskService) FindByID(ctx context.Context, id uuid.UUID) (*entities.Task, error) {
-	return s.taskRepo.FindByID(ctx, id)
+func (s *TaskService) FindByID(ctx context.Context, id uuid.UUID, scope *entities.TaskScope) (*entities.Task, error) {
+	return s.taskRepo.FindByID(ctx, id, scope)
 }
 
 // Create creates a new task.
@@ -56,13 +56,13 @@ func (s *TaskService) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // Run runs a task.
-func (s *TaskService) Run(ctx context.Context, taskID uuid.UUID, taskRunID uuid.UUID) error {
-	task, err := s.taskRepo.FindByID(ctx, taskID)
+func (s *TaskService) Run(ctx context.Context, taskID uuid.UUID, taskRunID uuid.UUID, scope *entities.TaskScope) error {
+	task, err := s.taskRepo.FindByID(ctx, taskID, scope)
 	if err != nil {
 		return err
 	}
 
-	if task.Steps == nil || len(task.Steps) == 0 {
+	if task.TaskSpec.Steps == nil || len(task.TaskSpec.Steps) == 0 {
 		return fmt.Errorf("task %s has no steps", task.ID)
 	}
 
@@ -84,10 +84,7 @@ func (s *TaskService) Run(ctx context.Context, taskID uuid.UUID, taskRunID uuid.
 						Namespace:    task.Namespace,
 					},
 					Spec: tekton.TaskRunSpec{
-						TaskSpec: &tekton.TaskSpec{
-							Steps:  task.Steps,
-							Params: task.Params,
-						},
+						TaskSpec: task.TaskSpec,
 					},
 				},
 			},
@@ -145,10 +142,10 @@ func (s *TaskService) FindTaskRunByID(ctx context.Context, taskID uuid.UUID, tas
 }
 
 // FindTaskRunLogs returns a stream of logs for a task run.
-func (s *TaskService) FindTaskRunLogs(ctx context.Context, taskID uuid.UUID, taskRunID uuid.UUID) (string, error) {
+func (s *TaskService) FindTaskRunLogs(ctx context.Context, taskID uuid.UUID, taskRunID uuid.UUID) (map[string]string, error) {
 	taskRun, err := s.FindTaskRunByID(ctx, taskID, taskRunID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	return s.tektonClient.GetTaskRunLogs(ctx, taskRun.TaskRun)
@@ -162,4 +159,19 @@ func (s *TaskService) FindTaskRunStatus(ctx context.Context, taskID uuid.UUID, t
 	}
 
 	return taskRun.Status, nil
+}
+
+// GetTaskScopeFromContext returns a task scope from a context.
+func (s *TaskService) GetTaskScopeFromContext(ctx context.Context) *entities.TaskScope {
+	ctxValue := ctx.Value("taskScope")
+	if ctxValue == nil {
+		return nil
+	}
+
+	scope, ok := ctxValue.(*entities.TaskScope)
+	if !ok {
+		return nil
+	}
+
+	return scope
 }

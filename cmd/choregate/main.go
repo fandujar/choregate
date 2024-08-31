@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/fandujar/choregate/pkg/controller"
+	"github.com/fandujar/choregate/pkg/entities"
 	"github.com/fandujar/choregate/pkg/providers/auth"
 	"github.com/fandujar/choregate/pkg/providers/tektoncd"
 	"github.com/fandujar/choregate/pkg/repositories"
@@ -51,8 +53,13 @@ func main() {
 	var userRepository repositories.UserRepository
 	var triggerRepository repositories.TriggerRepository
 	var teamRepository repositories.TeamRepository
+	var organizationRepository repositories.OrganizationRepository
 
 	repositoryType := os.Getenv("CHOREGATE_REPOSITORY_TYPE")
+	if repositoryType == "" {
+		repositoryType = "memory"
+	}
+
 	if repositoryType == "postgres" {
 		var err error
 		ctx := context.Background()
@@ -62,6 +69,17 @@ func main() {
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to create postgres task repository")
 		}
+		taskRunRepository, err = postgres.NewPostgresTaskRunRepository(ctx)
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to create postgres task run repository")
+		}
+		userRepository, err = postgres.NewPostgresUserRepository(ctx)
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to create postgres user repository")
+		}
+		triggerRepository = memory.NewInMemoryTriggerRepository()
+		teamRepository = memory.NewInMemoryTeamRepository()
+		organizationRepository = memory.NewInMemoryOrganizationRepository()
 	}
 
 	if repositoryType == "memory" {
@@ -71,6 +89,7 @@ func main() {
 		userRepository = memory.NewInMemoryUserRepository()
 		triggerRepository = memory.NewInMemoryTriggerRepository()
 		teamRepository = memory.NewInMemoryTeamRepository()
+		organizationRepository = memory.NewInMemoryOrganizationRepository()
 	}
 
 	// Print the type of each repository being used
@@ -78,6 +97,7 @@ func main() {
 	log.Debug().Msgf("type of userRepository: %T", userRepository)
 	log.Debug().Msgf("type of triggerRepository: %T", triggerRepository)
 	log.Debug().Msgf("type of teamRepository: %T", teamRepository)
+	log.Debug().Msgf("type of organizationRepository: %T", organizationRepository)
 
 	// Initialize tekton client
 	tektonClient, err := tektoncd.NewTektonClient()
@@ -88,10 +108,14 @@ func main() {
 	// Create services
 	taskService := services.NewTaskService(taskRepository, taskRunRepository, tektonClient)
 	triggerService := services.NewTriggerService(triggerRepository)
-	userService := services.NewUserService(userRepository)
+	organizationService := services.NewOrganizationService(
+		organizationRepository,
+		teamRepository,
+		userRepository,
+	)
 
 	// Create the auth provider
-	authProvider, err := auth.NewAuthProvider(userService)
+	authProvider, err := auth.NewAuthProvider(organizationService)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create auth provider")
 	}
@@ -122,7 +146,7 @@ func main() {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			token, err := authProvider.HandleLogin(
+			user, token, err := authProvider.HandleLogin(
 				r.Context(),
 				r.FormValue("username"),
 				r.FormValue("password"),
@@ -134,12 +158,34 @@ func main() {
 
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(map[string]string{
-				"token": token,
+				"user_id":     user.ID.String(),
+				"username":    user.Email,
+				"system_role": user.SystemRole,
+				"email":       user.Email,
+				"token":       token,
 			})
 		})
-		// r.Post("/logout", func(w http.ResponseWriter, r *http.Request) {
+		r.Post("/validate", func(w http.ResponseWriter, r *http.Request) {
+			token := r.Header.Get("Authorization")
+			token = token[7:]
+			if token == "" {
+				http.Error(w, "missing token", http.StatusBadRequest)
+				return
+			}
 
-		// })
+			valid, err := authProvider.ValidateToken(r.Context(), token)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			if !valid {
+				http.Error(w, "invalid token", http.StatusUnauthorized)
+				return
+			}
+			json.NewEncoder(w).Encode(map[string]bool{
+				"valid": valid,
+			})
+		})
 	})
 
 	// Register the routes
@@ -154,8 +200,16 @@ func main() {
 		)
 		transport.RegisterTasksRoutes(r, *taskService)
 		transport.RegisterTriggersRoutes(r, *triggerService)
-		transport.RegisterUsersRoutes(r, *userService)
+		transport.RegisterUsersRoutes(r, *organizationService)
+		transport.RegisterTeamsRoutes(r, *organizationService)
+		transport.RegisterOrganizationsRoutes(r, *organizationService)
 	})
+
+	// Setup SuperUser if environment variable is set
+	err = SetupSuperUser(*organizationService)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to setup superuser")
+	}
 
 	// Prepare to handle signals
 	// Start the HTTP server
@@ -173,6 +227,24 @@ func main() {
 		Addr:    ":8080",
 		Handler: r,
 	}
+
+	controller, err := controller.NewController(
+		&controller.ControllerConfig{
+			Service:  taskService,
+			TektonCD: tektonClient,
+		},
+	)
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create controller")
+	}
+
+	go func() {
+		if err := controller.Run(context.Background()); err != nil {
+			log.Error().Err(err).Msg("controller error")
+			signalHandler <- syscall.SIGTERM
+		}
+	}()
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
@@ -204,4 +276,84 @@ func CustomLogger() func(next http.Handler) http.Handler {
 		}
 		return http.HandlerFunc(fn)
 	}
+}
+
+func SetupSuperUser(service services.OrganizationService) error {
+	superUserEmail := os.Getenv("CHOREGATE_SUPERUSER_EMAIL")
+	superUserPassword := os.Getenv("CHOREGATE_SUPERUSER_PASSWORD")
+
+	if superUserEmail == "" || superUserPassword == "" {
+		log.Info().Msg("no superuser credentials provided")
+		return nil
+	}
+
+	_, err := service.GetUserByEmail(context.Background(), superUserEmail)
+	if err == nil {
+		log.Info().Msg("superuser already exists")
+		return nil
+	}
+
+	user, err := entities.NewUser(
+		&entities.UserConfig{
+			Email:      superUserEmail,
+			Password:   superUserPassword,
+			SystemRole: "admin",
+		},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	err = service.CreateUser(context.Background(), user)
+	if err != nil {
+		return err
+	}
+
+	team, err := entities.NewTeam(
+		&entities.TeamConfig{
+			Name: "superuser",
+		},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	err = service.CreateTeam(context.Background(), team)
+	if err != nil {
+		return err
+	}
+
+	organization, err := entities.NewOrganization(
+		&entities.OrganizationConfig{
+			Name: "superuser",
+		},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	err = service.CreateOrganization(context.Background(), organization)
+	if err != nil {
+		return err
+	}
+
+	err = service.AddOrganizationMember(context.Background(), organization.ID, user.ID, "admin")
+	if err != nil {
+		return err
+	}
+
+	err = service.AddTeamMember(context.Background(), team.ID, user.ID, "admin")
+	if err != nil {
+		return err
+	}
+
+	err = service.AddTeam(context.Background(), organization.ID, team.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

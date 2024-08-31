@@ -5,11 +5,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 
 import { Steps } from "./Steps"
 import { StepAdd } from "./StepAdd"
-import { TaskRuns, RunTask } from "./TaskRuns"
+import { TaskRuns } from "./TaskRuns"
+import { TaskRunCreate } from "./TaskRunCreate"
 import { TaskUpdateAtom } from "@/atoms/Update";
 import { TaskAtom } from "@/atoms/Tasks";
 import { useRecoilState } from "recoil";
-
+import { toast } from "sonner";
+import { TaskSettings } from "./TaskSettings";
 
 type TaskProps = {
     taskID: string
@@ -24,6 +26,8 @@ export const Task = (props: TaskProps) => {
         let task = getTask(taskID)
         task.then((task) => {
             setTask(task)
+        }).catch((error) => {
+            toast.error(`${error.message}: ${error.response.data}`)
         })
         setUpdate(false)
     }, [update])
@@ -36,7 +40,10 @@ export const Task = (props: TaskProps) => {
                     <StepAdd taskID={taskID}/>
                 </div>
                 <div className="ml-2">
-                    <RunTask taskID={taskID}/>
+                    <TaskRunCreate taskID={taskID}/>
+                </div>
+                <div className="ml-2">
+                    <TaskSettings taskID={taskID}/>
                 </div>
             </div>
             <Card className="mb-4">

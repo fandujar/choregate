@@ -18,6 +18,12 @@ import (
 
 // TektonClient is a client for interacting with Tekton.
 type TektonClient interface {
+	// WatchTasks watches all tasks inside a namespace.
+	WatchTasks(ctx context.Context, namespace string) (<-chan watch.Event, error)
+	// WatchTask watches a task.
+	WatchTask(ctx context.Context, task *tektonAPI.Task, id uuid.UUID) (<-chan watch.Event, error)
+	// SetTaskLabels sets the labels of a task.
+	SetTaskLabels(ctx context.Context, task *tektonAPI.Task, labels map[string]string) error
 	// GetTaskRun returns a task run by name.
 	GetTaskRun(ctx context.Context, namespace string, id uuid.UUID) (*tektonAPI.TaskRun, error)
 	// RunTask runs a task.
@@ -25,7 +31,7 @@ type TektonClient interface {
 	// WatchTaskRun watches a task run.
 	WatchTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun, id uuid.UUID) (<-chan watch.Event, error)
 	// GetTaskRunLogs returns a stream of logs for a task run.
-	GetTaskRunLogs(ctx context.Context, taskRun *tektonAPI.TaskRun) (string, error)
+	GetTaskRunLogs(ctx context.Context, taskRun *tektonAPI.TaskRun) (map[string]string, error)
 }
 
 type TektonClientImpl struct {
@@ -61,6 +67,46 @@ func NewTektonClient() (TektonClient, error) {
 	}, nil
 }
 
+// WatchTasks watches all tasks inside a namespace.
+func (c *TektonClientImpl) WatchTasks(ctx context.Context, namespace string) (<-chan watch.Event, error) {
+	// Watch the tasks.
+	watcher, err := c.tektonClient.TektonV1().Tasks(namespace).Watch(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return watcher.ResultChan(), nil
+}
+
+// WatchTask watches a task.
+func (c *TektonClientImpl) WatchTask(ctx context.Context, task *tektonAPI.Task, id uuid.UUID) (<-chan watch.Event, error) {
+	namespace := task.Namespace
+
+	// Watch the task.
+	watcher, err := c.tektonClient.TektonV1().Tasks(namespace).Watch(ctx, metav1.ListOptions{
+		LabelSelector: "choregate.fandujar.dev/task-id=" + id.String(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return watcher.ResultChan(), nil
+}
+
+// SetTaskLabels sets the labels of a task.
+func (c *TektonClientImpl) SetTaskLabels(ctx context.Context, task *tektonAPI.Task, labels map[string]string) error {
+	namespace := task.Namespace
+
+	// Set the labels.
+	task.Labels = labels
+	_, err := c.tektonClient.TektonV1().Tasks(namespace).Update(ctx, task, metav1.UpdateOptions{})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // GetTaskRun returns a task run by ID.
 func (c *TektonClientImpl) GetTaskRun(ctx context.Context, namespace string, id uuid.UUID) (*tektonAPI.TaskRun, error) {
 	// Find the task run by ID in the labels.
@@ -77,18 +123,32 @@ func (c *TektonClientImpl) GetTaskRun(ctx context.Context, namespace string, id 
 }
 
 // Logs returns the logs of a task run.
-func (c *TektonClientImpl) Logs(ctx context.Context, taskRun *tektonAPI.TaskRun) (string, error) {
-	// Get the logs of the task run.
-	raw, err := c.kubeClient.CoreV1().Pods(taskRun.Namespace).GetLogs(taskRun.Status.PodName, &v1.PodLogOptions{}).Do(ctx).Raw()
+func (c *TektonClientImpl) Logs(ctx context.Context, taskRun *tektonAPI.TaskRun) (map[string]string, error) {
+
+	pod, err := c.kubeClient.CoreV1().Pods(taskRun.Namespace).Get(ctx, taskRun.Status.PodName, metav1.GetOptions{})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	if raw == nil {
-		return "", fmt.Errorf("failed to get logs")
+	if pod.Status.Phase == v1.PodPending {
+		return nil, fmt.Errorf("pod is pending")
 	}
 
-	return string(raw), nil
+	var logs map[string]string = make(map[string]string)
+
+	for _, container := range pod.Spec.Containers {
+		raw, err := c.kubeClient.CoreV1().Pods(taskRun.Namespace).GetLogs(pod.Name, &v1.PodLogOptions{
+			Container: container.Name,
+		}).DoRaw(ctx)
+
+		if err != nil {
+			return nil, err
+		}
+
+		logs[container.Name] = string(raw)
+	}
+
+	return logs, nil
 }
 
 func (c *TektonClientImpl) RunTaskRun(ctx context.Context, taskRun *tektonAPI.TaskRun) error {
@@ -116,6 +176,6 @@ func (c *TektonClientImpl) WatchTaskRun(ctx context.Context, taskRun *tektonAPI.
 	return watcher.ResultChan(), nil
 }
 
-func (c *TektonClientImpl) GetTaskRunLogs(ctx context.Context, taskRun *tektonAPI.TaskRun) (string, error) {
+func (c *TektonClientImpl) GetTaskRunLogs(ctx context.Context, taskRun *tektonAPI.TaskRun) (map[string]string, error) {
 	return c.Logs(ctx, taskRun)
 }

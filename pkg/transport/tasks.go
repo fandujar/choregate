@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/fandujar/choregate/pkg/entities"
+	"github.com/fandujar/choregate/pkg/rbac"
 	"github.com/fandujar/choregate/pkg/services"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -32,7 +33,10 @@ func NewTaskHandler(service services.TaskService) *TaskHandler {
 
 // GetTasksHandler handles the GET /tasks endpoint.
 func (h *TaskHandler) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
-	tasks, err := h.service.FindAll(r.Context())
+	ctx := r.Context()
+	scope := h.service.GetTaskScopeFromContext(ctx)
+
+	tasks, err := h.service.FindAll(r.Context(), scope)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -44,6 +48,11 @@ func (h *TaskHandler) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 // GetTaskHandler handles the GET /tasks/{id} endpoint.
 func (h *TaskHandler) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	scope := h.service.GetTaskScopeFromContext(r.Context())
+	if scope == nil {
+		http.Error(w, "invalid task scope", http.StatusBadRequest)
+		return
+	}
 
 	taskID, err := uuid.Parse(id)
 	if taskID == uuid.Nil || err != nil {
@@ -52,7 +61,7 @@ func (h *TaskHandler) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := h.service.FindByID(r.Context(), taskID)
+	task, err := h.service.FindByID(r.Context(), taskID, scope)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -70,9 +79,19 @@ func (h *TaskHandler) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	ctx := r.Context()
+	scope := h.service.GetTaskScopeFromContext(ctx)
+	if scope == nil {
+		http.Error(w, "invalid task scope", http.StatusBadRequest)
+		return
+	}
+
 	taskConfig := entities.TaskConfig{
 		ID:   task.ID,
 		Name: task.Name,
+		TaskScope: &entities.TaskScope{
+			Owner: scope.Owner,
+		},
 	}
 
 	t, err := entities.NewTask(&taskConfig)
@@ -94,6 +113,11 @@ func (h *TaskHandler) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 func (h *TaskHandler) RunTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	runID := chi.URLParam(r, "taskRunID")
+	scope := h.service.GetTaskScopeFromContext(r.Context())
+	if scope == nil {
+		http.Error(w, "invalid task scope", http.StatusBadRequest)
+		return
+	}
 
 	taskID := uuid.MustParse(id)
 	if taskID == uuid.Nil {
@@ -113,7 +137,7 @@ func (h *TaskHandler) RunTaskHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err := h.service.Run(r.Context(), taskID, taskRunID)
+	err := h.service.Run(r.Context(), taskID, taskRunID, scope)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -125,6 +149,12 @@ func (h *TaskHandler) RunTaskHandler(w http.ResponseWriter, r *http.Request) {
 // UpdateStepsHandler handles the PUT /tasks/{id}/steps endpoint.
 func (h *TaskHandler) UpdateStepsHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+
+	scope := h.service.GetTaskScopeFromContext(r.Context())
+	if scope == nil {
+		http.Error(w, "invalid task scope", http.StatusBadRequest)
+		return
+	}
 
 	taskID := uuid.MustParse(id)
 	if taskID == uuid.Nil {
@@ -139,13 +169,13 @@ func (h *TaskHandler) UpdateStepsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	task, err := h.service.FindByID(r.Context(), taskID)
+	task, err := h.service.FindByID(r.Context(), taskID, scope)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	task.Steps = steps
+	task.TaskSpec.Steps = steps
 	log.Debug().Msgf("updating task %s with steps %v", taskID, steps)
 	err = h.service.Update(r.Context(), task)
 	if err != nil {
@@ -159,23 +189,29 @@ func (h *TaskHandler) UpdateStepsHandler(w http.ResponseWriter, r *http.Request)
 // GetTaskStepsHandler handles the GET /tasks/{id}/steps endpoint.
 func (h *TaskHandler) GetTaskStepsHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	scope := h.service.GetTaskScopeFromContext(r.Context())
+	if scope == nil {
+		http.Error(w, "invalid task scope", http.StatusBadRequest)
+		return
+	}
+
 	taskID := uuid.MustParse(id)
 	if taskID == uuid.Nil {
 		http.Error(w, "invalid task ID", http.StatusBadRequest)
 		return
 	}
 
-	task, err := h.service.FindByID(r.Context(), taskID)
+	task, err := h.service.FindByID(r.Context(), taskID, scope)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	if task.Steps == nil {
-		task.Steps = []tekton.Step{}
+	if task.TaskSpec.Steps == nil {
+		task.TaskSpec.Steps = []tekton.Step{}
 	}
 
-	json.NewEncoder(w).Encode(task.Steps)
+	json.NewEncoder(w).Encode(task.TaskSpec.Steps)
 }
 
 // GetTaskRunsHandler handles the GET /tasks/{id}/runs endpoint.
@@ -299,20 +335,39 @@ func (h *TaskHandler) FakeHandler(w http.ResponseWriter, r *http.Request) {
 // RegisterTasksRoutes registers the routes for the tasks API.
 func RegisterTasksRoutes(r chi.Router, service services.TaskService) {
 	handler := NewTaskHandler(service)
+	roles := rbac.SetupRoles()
 
-	r.Get("/tasks", handler.GetTasksHandler)
-	r.Post("/tasks", handler.CreateTaskHandler)
+	r.Route("/tasks", func(r chi.Router) {
+		// GET /tasks
+		r.Group(func(r chi.Router) {
+			r.Use(rbac.PermissionInjectorMiddleware(rbac.Permission{Scope: "tasks", Action: "read"}))
+			r.Use(rbac.RBAC(roles))
+			r.Get("/", handler.GetTasksHandler)
+			r.Get("/{id}", handler.GetTaskHandler)
+			r.Get("/{id}/steps", handler.GetTaskStepsHandler)
+			r.Get("/{id}/runs", handler.GetTaskRunsHandler)
+			r.Get("/{id}/runs/{runID}", handler.GetTaskRunHandler)
+			r.Get("/{id}/runs/{runID}/logs", handler.GetTaskRunLogsHandler)
+			r.Get("/{id}/runs/{runID}/status", handler.GetTaskRunStatusHandler)
+		})
 
-	r.Get("/tasks/{id}", handler.GetTaskHandler)
-	r.Post("/tasks/{id}/runs", handler.RunTaskHandler)
-	r.Get("/tasks/{id}/runs", handler.GetTaskRunsHandler)
-	r.Put("/tasks/{id}/steps", handler.UpdateStepsHandler)
-	r.Get("/tasks/{id}/steps", handler.GetTaskStepsHandler)
+		// POST /tasks
+		r.Group(func(r chi.Router) {
+			r.Use(rbac.PermissionInjectorMiddleware(rbac.Permission{Scope: "tasks", Action: "create"}))
+			r.Use(rbac.RBAC(roles))
+			r.Post("/", handler.CreateTaskHandler)
+			r.Post("/{id}/runs", handler.RunTaskHandler)
+		})
+
+		// PUT /tasks
+		r.Group(func(r chi.Router) {
+			r.Use(rbac.PermissionInjectorMiddleware(rbac.Permission{Scope: "tasks", Action: "update"}))
+			r.Use(rbac.RBAC(roles))
+			r.Put("/{id}/steps", handler.UpdateStepsHandler)
+		})
+	})
+
 	// TODO: implement task params handler
-	r.Put("/tasks/{id}/params", handler.FakeHandler)
+	// r.Put("/tasks/{id}/params", handler.FakeHandler)
 
-	r.Get("/tasks/{id}/runs/{runID}", handler.GetTaskRunHandler)
-	r.Post("/tasks/{id}/runs/{runID}/retry", handler.RunTaskHandler)
-	r.Get("/tasks/{id}/runs/{runID}/logs", handler.GetTaskRunLogsHandler)
-	r.Get("/tasks/{id}/runs/{runID}/status", handler.GetTaskRunStatusHandler)
 }

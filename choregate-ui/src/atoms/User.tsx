@@ -1,11 +1,12 @@
+import { UserType } from '@/types/User';
 import { atom } from 'recoil';
 
-export const User = atom({
+export const UserAtom = atom<UserType>({
   key: 'User',
   default: {
-    id: 0,
+    id: '',
+    username: '',
     email: '',
-    name: '',
-    role: '',
+    systemRole: '',
   },
 });

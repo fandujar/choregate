@@ -42,7 +42,7 @@ export const TaskRunAtom = atom<TaskRunType>({
 
 export const TaskRunLogsAtom = atom({
     key: 'taskRunLogs',
-    default: ''
+    default: {}
 })
 
 export const TaskSelector = selector({

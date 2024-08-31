@@ -23,6 +23,12 @@ type TeamRepository interface {
 	AddMember(ctx context.Context, teamID, userID uuid.UUID, role string) error
 	// RemoveMember removes a member from a team.
 	RemoveMember(ctx context.Context, teamID, userID uuid.UUID) error
+	// FindMembers returns all members of a team.
+	FindMembers(ctx context.Context, teamID uuid.UUID) ([]*entities.TeamMember, error)
+	// FindMember returns a member of a team.
+	FindMember(ctx context.Context, teamID, userID uuid.UUID) (*entities.TeamMember, error)
+	// FindMemberMemberships returns all memberships of a member.
+	FindMemberMemberships(ctx context.Context, userID uuid.UUID) ([]*entities.TeamMember, error)
 	// UpdateMemberRole updates the role of a member in a team.
 	UpdateMemberRole(ctx context.Context, teamID, userID uuid.UUID, role string) error
 }
