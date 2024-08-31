@@ -42,21 +42,21 @@ func RegisterUsersRoutes(r chi.Router, service services.OrganizationService) {
 		r.Group(func(r chi.Router) {
 			r.Use(rbac.PermissionInjectorMiddleware(rbac.Permission{Scope: "users", Action: "create"}))
 			r.Use(rbac.RBAC(roles))
-			r.Post("/users", handler.CreateUserHandler)
+			r.Post("/", handler.CreateUserHandler)
 		})
 
 		// PUT /users
 		r.Group(func(r chi.Router) {
 			r.Use(rbac.PermissionInjectorMiddleware(rbac.Permission{Scope: "users", Action: "update"}))
 			r.Use(rbac.RBAC(roles))
-			r.Put("/users/{id}", handler.UpdateUserHandler)
+			r.Put("/{id}", handler.UpdateUserHandler)
 		})
 
 		// DELETE /users
 		r.Group(func(r chi.Router) {
 			r.Use(rbac.PermissionInjectorMiddleware(rbac.Permission{Scope: "users", Action: "delete"}))
 			r.Use(rbac.RBAC(roles))
-			r.Delete("/users/{id}", handler.DeleteUserHandler)
+			r.Delete("/{id}", handler.DeleteUserHandler)
 		})
 	})
 }
