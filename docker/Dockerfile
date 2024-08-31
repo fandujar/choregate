@@ -13,6 +13,7 @@ FROM ubuntu:latest as linux-setup
 RUN useradd -m choregate
 
 FROM scratch as final
+LABEL org.opencontainers.image.source https://github.com/fandujar/choregate
 WORKDIR /app
 COPY --from=backend-builder /app/cmd/choregate/choregate /choregate
 COPY --from=linux-setup /etc/passwd /etc/passwd
