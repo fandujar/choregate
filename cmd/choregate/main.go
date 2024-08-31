@@ -106,7 +106,11 @@ func main() {
 	}
 
 	// Create services
-	taskService := services.NewTaskService(taskRepository, taskRunRepository, tektonClient)
+	taskService := services.NewTaskService(
+		taskRepository,
+		taskRunRepository,
+		tektonClient,
+	)
 	triggerService := services.NewTriggerService(triggerRepository)
 	organizationService := services.NewOrganizationService(
 		organizationRepository,
@@ -130,6 +134,17 @@ func main() {
 			middleware.Recoverer,
 		)
 		r.Handle("/*", http.FileServer(http.FS(choregateUIFS)))
+	})
+
+	// Health check
+	r.Group(func(r chi.Router) {
+		r.Get("/liveness", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+
+		r.Get("/readiness", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
 	})
 
 	// Handle login
