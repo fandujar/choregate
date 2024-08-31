@@ -13,6 +13,8 @@ type UserRepository interface {
 	FindAll(ctx context.Context) ([]*entities.User, error)
 	// FindByID returns a user by ID.
 	FindByID(ctx context.Context, id uuid.UUID) (*entities.User, error)
+	// FindByEmail returns a user by email.
+	FindByEmail(ctx context.Context, email string) (*entities.User, error)
 	// Create creates a new user.
 	Create(ctx context.Context, user *entities.User) error
 	// Update updates a user.

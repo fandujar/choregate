@@ -205,22 +205,9 @@ func (s *OrganizationService) DeleteUser(ctx context.Context, id uuid.UUID) erro
 
 // GetUserByEmail returns a user by email.
 func (s *OrganizationService) GetUserByEmail(ctx context.Context, email string) (*entities.User, error) {
-	users, err := s.userRepo.FindAll(ctx)
+	user, err := s.userRepo.FindByEmail(ctx, email)
 	if err != nil {
 		return nil, err
-	}
-
-	var user *entities.User
-
-	for _, u := range users {
-		if u.Email == email {
-			user = u
-			break
-		}
-	}
-
-	if user == nil {
-		return nil, entities.ErrUserNotFound{}
 	}
 
 	return user, nil

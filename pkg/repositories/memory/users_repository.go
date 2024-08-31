@@ -37,6 +37,16 @@ func (r *InMemoryUserRepository) FindByID(ctx context.Context, id uuid.UUID) (*e
 	return user, nil
 }
 
+// FindByEmail returns the user with the specified email.
+func (r *InMemoryUserRepository) FindByEmail(ctx context.Context, email string) (*entities.User, error) {
+	for _, user := range r.users {
+		if user.Email == email {
+			return user, nil
+		}
+	}
+	return nil, entities.ErrUserNotFound{}
+}
+
 // Create adds a new user to the repository.
 func (r *InMemoryUserRepository) Create(ctx context.Context, user *entities.User) error {
 	if _, ok := r.users[user.ID]; ok {

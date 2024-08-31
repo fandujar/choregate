@@ -3,6 +3,7 @@ package entities
 import (
 	"github.com/fandujar/choregate/pkg/utils"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserConfig struct {
@@ -27,6 +28,14 @@ func NewUser(config *UserConfig) (*User, error) {
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	if config.Password != "" {
+		passwordBytes, err := bcrypt.GenerateFromPassword([]byte(config.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, err
+		}
+		config.Password = string(passwordBytes)
 	}
 
 	return &User{

@@ -9,6 +9,7 @@ import (
 	"github.com/fandujar/choregate/pkg/entities"
 	"github.com/fandujar/choregate/pkg/services"
 	"github.com/go-chi/jwtauth/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthProvider interface {
@@ -104,7 +105,12 @@ func (a *AuthProviderImpl) ValidateUserPassword(ctx context.Context, username, p
 		return user, true, nil
 	}
 
-	return nil, false, nil
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err == nil {
+		return user, true, nil
+	}
+
+	return nil, false, err
 }
 
 // RefreshToken is a method that will be implemented by the auth provider
