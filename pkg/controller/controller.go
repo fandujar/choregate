@@ -53,6 +53,10 @@ func (c *Controller) HandleEvent(ctx context.Context, event watch.Event) error {
 		tektonTask := event.Object.(*tektonAPI.Task)
 		log.Info().Msgf("task %s added", tektonTask.Name)
 
+		if _, ok := tektonTask.Labels["choregate.fandujar.dev/task-id"]; ok {
+			return fmt.Errorf("task %s already has a task-id label", tektonTask.Name)
+		}
+
 		task, err := entities.NewTask(
 			&entities.TaskConfig{
 				Name:     tektonTask.Name,
