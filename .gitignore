@@ -49,3 +49,5 @@ cmd/choregate/choregate
 
 #Ignore air temp files
 temp/
+
+kind-kubeconfig.yaml
