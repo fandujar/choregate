@@ -51,3 +51,5 @@ cmd/choregate/choregate
 temp/
 
 kind-kubeconfig.yaml
+
+*.tgz
