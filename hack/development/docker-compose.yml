@@ -11,7 +11,7 @@ x-environment-variables: &common-env-vars
   CHOREGATE_SUPERUSER_EMAIL: email@admin.com
   CHOREGATE_SUPERUSER_PASSWORD: password
   CHOREGATE_REPOSITORY_TYPE: postgres
-  KUBECONFIG: /tmp/kind-kubeconfig.yaml
+  KUBECONFIG: /app/hack/development/kind-kubeconfig.yaml
 
 services:
   backend:
@@ -25,7 +25,9 @@ services:
       - "8080:8080"
     volumes:
       - ../../:/app
-      - /tmp/kind-kubeconfig.yaml:/tmp/kind-kubeconfig.yaml
+      - type: bind
+        source: ${PWD}/hack/development/kind-kubeconfig.yaml
+        target: /app/hack/development/kind-kubeconfig.yaml
     depends_on:
       db:
         condition: service_healthy
@@ -80,7 +82,7 @@ services:
         condition: service_healthy
     environment:
       - GOOSE_DRIVER=postgres
-      - GOOSE_DBSTRING=postgres://choregate:choregate@localhost:5432/choregate?sslmode=disable
+      - GOOSE_DBSTRING=postgres://choregate:choregate@db:5432/choregate?sslmode=disable
       - GOOSE_MIGRATION_DIR=/app/migrations
     volumes:
       - ../../migrations:/app/migrations

@@ -7,3 +7,4 @@ build
 # Ignore specific files
 .env
 .DS_Store
+kind-kubeconfig.yaml
