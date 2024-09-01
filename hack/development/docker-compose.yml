@@ -10,7 +10,7 @@ x-environment-variables: &common-env-vars
   CHOREGATE_JWT_SECRET: jwt_secret
   CHOREGATE_SUPERUSER_EMAIL: email@admin.com
   CHOREGATE_SUPERUSER_PASSWORD: password
-  CHOREGATE_REPOSITORY_TYPE: memory
+  CHOREGATE_REPOSITORY_TYPE: postgres
   KUBECONFIG: /tmp/kind-kubeconfig.yaml
 
 services:
