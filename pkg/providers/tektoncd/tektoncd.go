@@ -81,10 +81,12 @@ func (c *TektonClientImpl) WatchTasks(ctx context.Context, namespace string) (<-
 // WatchTask watches a task.
 func (c *TektonClientImpl) WatchTask(ctx context.Context, task *tektonAPI.Task, id uuid.UUID) (<-chan watch.Event, error) {
 	namespace := task.Namespace
-
+	timeout := int64(5)
 	// Watch the task.
 	watcher, err := c.tektonClient.TektonV1().Tasks(namespace).Watch(ctx, metav1.ListOptions{
-		LabelSelector: "choregate.fandujar.dev/task-id=" + id.String(),
+		TimeoutSeconds: &timeout,
+		LabelSelector:  "choregate.fandujar.dev/task-id=" + id.String(),
+		Watch:          true,
 	})
 	if err != nil {
 		return nil, err
