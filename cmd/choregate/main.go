@@ -31,9 +31,29 @@ import (
 //go:embed index.html assets/*
 var choregateUIFS embed.FS
 
+func getLogLevel() zerolog.Level {
+	switch os.Getenv("CHOREGATE_LOG_LEVEL") {
+	case "trace":
+		return zerolog.TraceLevel
+	case "debug":
+		return zerolog.DebugLevel
+	case "info":
+		return zerolog.InfoLevel
+	case "warn":
+		return zerolog.WarnLevel
+	case "error":
+		return zerolog.ErrorLevel
+	case "fatal":
+		return zerolog.FatalLevel
+	default:
+		return zerolog.InfoLevel
+	}
+}
+
 func main() {
 	// Configure the logger level and format
-	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	logLevel := getLogLevel()
+	zerolog.SetGlobalLevel(logLevel)
 	zerolog.TimeFieldFormat = time.RFC3339Nano
 
 	log.Info().Msg("starting choregate")
