@@ -35,13 +35,24 @@ func (c *Controller) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
 	for {
 		select {
 		case <-ctx.Done():
+			log.Info().Msg("context done")
 			return nil
-		case event := <-events:
-			if err := c.HandleEvent(ctx, event); err != nil {
-				log.Error().Err(err).Msg("failed to handle event")
+		case event, ok := <-events:
+			if !ok {
+				events, err = c.TektonCD.WatchTasks(ctx, "choregate")
+				if err != nil {
+					log.Error().Err(err).Msg("failed to watch tasks")
+					continue
+				}
+			}
+			if event.Object != nil {
+				if err := c.HandleEvent(ctx, event); err != nil {
+					log.Error().Err(err).Msg("failed to handle event")
+				}
 			}
 		}
 	}
@@ -51,14 +62,20 @@ func (c *Controller) HandleEvent(ctx context.Context, event watch.Event) error {
 	switch event.Type {
 	case "ADDED":
 		tektonTask := event.Object.(*tektonAPI.Task)
-		log.Info().Msgf("task %s added", tektonTask.Name)
+		log.Debug().Msgf("task %s added", tektonTask.Name)
 
+		var taskID uuid.UUID
+		var err error
 		if _, ok := tektonTask.Labels["choregate.fandujar.dev/task-id"]; ok {
-			return fmt.Errorf("task %s already has a task-id label", tektonTask.Name)
+			taskID, err = uuid.Parse(tektonTask.Labels["choregate.fandujar.dev/task-id"])
+			if err != nil {
+				return err
+			}
 		}
 
 		task, err := entities.NewTask(
 			&entities.TaskConfig{
+				ID:       taskID,
 				Name:     tektonTask.Name,
 				TaskSpec: &tektonTask.Spec,
 			},
@@ -77,18 +94,21 @@ func (c *Controller) HandleEvent(ctx context.Context, event watch.Event) error {
 		})
 	case "MODIFIED":
 		tektonTask := event.Object.(*tektonAPI.Task)
-		log.Info().Msgf("task %s modified", tektonTask.Name)
+		log.Debug().Msgf("task %s modified", tektonTask.Name)
 
-		taskID := tektonTask.Labels["choregate.fandujar.dev/task-id"]
-		if taskID == "" {
+		id := tektonTask.Labels["choregate.fandujar.dev/task-id"]
+		if id == "" {
 			return fmt.Errorf("task %s has no task-id label", tektonTask.Name)
 		}
 
-		id := uuid.MustParse(taskID)
+		taskID, err := uuid.Parse(id)
+		if err != nil {
+			return err
+		}
 
 		task, err := entities.NewTask(
 			&entities.TaskConfig{
-				ID:       id,
+				ID:       taskID,
 				Name:     tektonTask.Name,
 				TaskSpec: &tektonTask.Spec,
 			},
@@ -106,16 +126,19 @@ func (c *Controller) HandleEvent(ctx context.Context, event watch.Event) error {
 		tektonTask := event.Object.(*tektonAPI.Task)
 		log.Info().Msgf("task %s deleted", tektonTask.Name)
 
-		taskID := tektonTask.Labels["choregate.fandujar.dev/task-id"]
-		if taskID == "" {
+		id := tektonTask.Labels["choregate.fandujar.dev/task-id"]
+		if id == "" {
 			return fmt.Errorf("task %s has no task-id label", tektonTask.Name)
 		}
 
-		id := uuid.MustParse(taskID)
+		taskID, err := uuid.Parse(id)
+		if err != nil {
+			return err
+		}
 
 		task, err := entities.NewTask(
 			&entities.TaskConfig{
-				ID:       id,
+				ID:       taskID,
 				Name:     tektonTask.Name,
 				TaskSpec: &tektonTask.Spec,
 			},
@@ -130,7 +153,7 @@ func (c *Controller) HandleEvent(ctx context.Context, event watch.Event) error {
 			return err
 		}
 	default:
-		log.Error().Msgf("unknown event type: %s", event.Type)
+		log.Debug().Msgf("event type %s not supported. event: %s", event.Type, event)
 	}
 
 	return nil

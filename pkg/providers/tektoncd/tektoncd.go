@@ -69,8 +69,11 @@ func NewTektonClient() (TektonClient, error) {
 
 // WatchTasks watches all tasks inside a namespace.
 func (c *TektonClientImpl) WatchTasks(ctx context.Context, namespace string) (<-chan watch.Event, error) {
+	timeout := int64(300)
 	// Watch the tasks.
-	watcher, err := c.tektonClient.TektonV1().Tasks(namespace).Watch(ctx, metav1.ListOptions{})
+	watcher, err := c.tektonClient.TektonV1().Tasks(namespace).Watch(ctx, metav1.ListOptions{
+		TimeoutSeconds: &timeout,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -81,11 +84,15 @@ func (c *TektonClientImpl) WatchTasks(ctx context.Context, namespace string) (<-
 // WatchTask watches a task.
 func (c *TektonClientImpl) WatchTask(ctx context.Context, task *tektonAPI.Task, id uuid.UUID) (<-chan watch.Event, error) {
 	namespace := task.Namespace
-
+	timeout := int64(30)
 	// Watch the task.
-	watcher, err := c.tektonClient.TektonV1().Tasks(namespace).Watch(ctx, metav1.ListOptions{
-		LabelSelector: "choregate.fandujar.dev/task-id=" + id.String(),
-	})
+	watcher, err := c.tektonClient.TektonV1().Tasks(namespace).Watch(
+		ctx,
+		metav1.ListOptions{
+			TimeoutSeconds: &timeout,
+			LabelSelector:  "choregate.fandujar.dev/task-id=" + id.String(),
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
