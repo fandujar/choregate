@@ -19,14 +19,3 @@ export const Menu = () => {
         </div>
     )
 }
-
-export const UserMenu = () => {
-    return (
-        <div className='text-slate-300 flex flex-col p-2'>
-        <h1 className='text-2xl text-pink-700 font-bold'>Choregate</h1>
-        <div className="flex">
-            {/* TODO */}
-        </div>
-        </div>
-    )
-}
