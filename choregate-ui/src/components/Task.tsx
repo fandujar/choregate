@@ -23,7 +23,7 @@ export const Task = (props: TaskProps) => {
     const [update, setUpdate] = useRecoilState(TaskUpdateAtom)
 
     useEffect(() => {
-        let task = getTask(taskID)
+        const task = getTask(taskID)
         task.then((task) => {
             setTask(task)
         }).catch((error) => {

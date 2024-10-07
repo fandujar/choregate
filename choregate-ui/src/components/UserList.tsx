@@ -9,9 +9,7 @@ type User = {
     password: string,
 }
 
-interface UserListProps {}
-
-const UserList = (_: UserListProps) => {
+const UserList = () => {
     
     const [update, setUpdate] = useState<boolean>(true);
     const [users, setUsers] = useState<User[]>([]);

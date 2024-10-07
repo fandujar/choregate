@@ -22,10 +22,10 @@ type StepEditProps = {
     const { taskID, stepIndex } = props;
     const [step, setStep] = useRecoilState(StepAtom);
     const [steps, setSteps] = useRecoilState(StepsAtom);
-    const [_, setUpdate] = useRecoilState(StepsUpdateAtom)
+    const [, setUpdate] = useRecoilState(StepsUpdateAtom)
   
     useEffect(() => {
-      let response = getSteps(taskID);
+      const response = getSteps(taskID);
       response.then((steps) => {
         setSteps(steps);
       });
@@ -36,7 +36,7 @@ type StepEditProps = {
     }, [])
   
     const handleEditStep = (index: number) => {
-        let data = [...steps]
+        const data = [...steps]
         data[index] = step
         updateSteps(taskID, data).then(() => {
           setUpdate(true)

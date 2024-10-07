@@ -11,11 +11,11 @@ import { TaskType } from "@/types/Task";
 
 export const TaskCreate = () => {
     const [task, setTask] = useState<TaskType>({name: ""})
-    const [_, setUpdate] = useRecoilState(TasksUpdateAtom)
+    const [, setUpdate] = useRecoilState(TasksUpdateAtom)
 
-    const handleTaskCreate = (e: any) => {
+    const handleTaskCreate = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        let response  = createTask(task)
+        const response  = createTask(task)
         response.then(() => {
             setUpdate(true)
         }).catch((err) => {

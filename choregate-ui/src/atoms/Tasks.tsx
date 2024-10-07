@@ -20,11 +20,7 @@ export const StepsAtom = atom<StepType[]>({
 
 export const StepAtom = atom<StepType>({
     key: 'step',
-    default: {
-        name: '',
-        image: '',
-        script: ''
-    }
+    default: { name: '', image: 'ubuntu', script: 'echo "Hello, World!"' }
 })
 
 export const TaskRunsAtom = atom<TaskRunType[]>({
@@ -49,6 +45,6 @@ export const TaskSelector = selector({
     key: 'taskSelector',
     get: ({get}) => (id: string) => {
         const tasks = get(TasksAtom)
-        return tasks.find((task: any) => task.id === id)
+        return tasks.find((task: TaskType) => task.id === id)
     }
 })

@@ -11,7 +11,7 @@ export const LoginPage = () => {
     const [credentials, setCredentials] = useState({ username: '', password: '' });
     const { login } = useAuth();
 
-    const handleLogin = async (e: any) => {
+    const handleLogin = async (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         try {
             const response = await fetch('/user/login', {

@@ -10,9 +10,9 @@ type TaskRunCreateProps = {
 
 export const TaskRunCreate = (props: TaskRunCreateProps) => {
     const { taskID } = props
-    const [_, setUpdate] = useRecoilState(TaskRunsUpdateAtom)
+    const [, setUpdate] = useRecoilState(TaskRunsUpdateAtom)
 
-    const handleTaskRunCreate = (e: any) => {
+    const handleTaskRunCreate = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault()
         runTask(taskID).then(() => {
             setUpdate(true)

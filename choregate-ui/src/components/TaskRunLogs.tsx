@@ -19,7 +19,7 @@ export const TaskRunLogs = (props: TaskRunLogsProps) => {
     const [taskRunLogs, setTaskRunLogs] = useRecoilState<TaskRunLogsType>(TaskRunLogsAtom)
 
     const handleViewLogs = () => {
-        let response = getTaskRunLogs(taskID, taskRunID)
+        const response = getTaskRunLogs(taskID, taskRunID)
         response.then((logs) => {
             setTaskRunLogs(logs)
         }).catch((err) => {

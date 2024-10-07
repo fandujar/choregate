@@ -24,25 +24,21 @@ type StepAddProps = {
 export const StepAdd = (props: StepAddProps) => {
 const { taskID } = props;
 const [steps, setSteps] = useRecoilState<StepType[]>(StepsAtom);
-const [update, setUpdate] = useRecoilState(StepsUpdateAtom)
+const [,setUpdate] = useRecoilState(StepsUpdateAtom)
 const [step, setStep] = useRecoilState<StepType>(StepAtom);
 
 useEffect(() => {
-    let response = getSteps(taskID);
+    const response = getSteps(taskID);
     response.then((steps) => {
-    setSteps(steps);
+        setSteps(steps);
     });
     setUpdate(false);
-}, [update]);
+}, [setUpdate, taskID, setSteps]);
 
-useEffect(() => {
-    setStep({name: '', image: 'ubuntu', script: 'echo "Hello, World!"'})
-}, [])
-
-const handleStepAdd = (e: any) => {
+const handleStepAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault()
 
-    let data = [...steps,{
+    const data = [...steps,{
     name: step.name,
     image: step.image,
     script: step.script
@@ -54,6 +50,8 @@ const handleStepAdd = (e: any) => {
         console.log(err)
         toast.error(`${err.message}: ${err.response.data}`)
     })
+
+    setStep({name: "", image: "", script: ""})
 }
 
 return (
