@@ -10,7 +10,6 @@ import { useQuery } from 'react-query'
 
 export function Tasks() {
     const [tasks, setTasks] = useRecoilState(TasksAtom)
-    // const [update, setUpdate] = useRecoilState(TasksUpdateAtom)
     const navigate = useNavigate()
 
     const {data, isLoading} = useQuery('tasks', getTasks)
