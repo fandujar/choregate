@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom'
 import { Card, CardContent } from './ui/card'
 import { useRecoilState } from 'recoil'
 import { TasksAtom } from '@/atoms/Tasks'
-import { TasksUpdateAtom } from '@/atoms/Update'
 import { TaskCreate } from './TaskCreate'
 import { useQuery } from 'react-query'
 
