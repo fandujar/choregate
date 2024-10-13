@@ -7,11 +7,11 @@ import { Steps } from "./Steps"
 import { StepAdd } from "./StepAdd"
 import { TaskRuns } from "./TaskRuns"
 import { TaskRunCreate } from "./TaskRunCreate"
-import { TaskUpdateAtom } from "@/atoms/Update";
 import { TaskAtom } from "@/atoms/Tasks";
 import { useRecoilState } from "recoil";
-import { toast } from "sonner";
+
 import { TaskSettings } from "./TaskSettings";
+import { useQuery } from "react-query";
 
 type TaskProps = {
     taskID: string
@@ -20,17 +20,17 @@ type TaskProps = {
 export const Task = (props: TaskProps) => {
     const { taskID } = props
     const [task, setTask] = useRecoilState(TaskAtom)
-    const [update, setUpdate] = useRecoilState(TaskUpdateAtom)
+    const { data, isLoading } = useQuery('task', () => getTask(taskID))
 
     useEffect(() => {
-        const task = getTask(taskID)
-        task.then((task) => {
-            setTask(task)
-        }).catch((error) => {
-            toast.error(`${error.message}: ${error.response.data}`)
-        })
-        setUpdate(false)
-    }, [update])
+        if (data) {
+            setTask(data)
+        }
+    }, [data])
+
+    if (isLoading) {
+        return <div>Loading...</div>
+    }
 
     return (
         <section className="flex-auto m-5">
