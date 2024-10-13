@@ -15,7 +15,7 @@ type TaskRunListProps = {
 
 export function TaskRuns(props: TaskRunListProps) {
     const { taskID } = props
-    const [taskRuns, setTaskRuns] = useRecoilState<TaskRunType[]>(TaskRunsAtom)
+    const [taskRuns, setTaskRuns] = useRecoilState<TaskRunType[]>(TaskRunsAtom(taskID))
     const [update, setUpdate] = useRecoilState(TaskRunsUpdateAtom)
 
     useEffect(() => {

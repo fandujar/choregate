@@ -15,7 +15,7 @@ type StepsProps = {
 
 export const Steps = (props: StepsProps) => {
     const { taskID } = props;
-    const [steps, setSteps] = useRecoilState<StepType[]>(StepsAtom);
+    const [steps, setSteps] = useRecoilState<StepType[]>(StepsAtom(taskID));
     const [update, setUpdate] = useRecoilState(StepsUpdateAtom)
 
     useEffect(() => {

@@ -14,7 +14,7 @@ type StepDeleteProps = {
   // Use AlertDialog to confirm deletion
   export const StepDelete = (props: StepDeleteProps) => {
     const { taskID, stepIndex } = props;
-    const [steps, setSteps] = useRecoilState(StepsAtom);
+    const [steps, setSteps] = useRecoilState(StepsAtom(taskID));
   
     const handleDeleteStep =  (index: number) => {
         const data = steps.filter((_, i) => i !== index)

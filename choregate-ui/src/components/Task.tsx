@@ -43,7 +43,7 @@ export const Task = (props: TaskProps) => {
                     <TaskRunCreate taskID={taskID}/>
                 </div>
                 <div className="ml-2">
-                    <TaskSettings taskID={taskID}/>
+                    <TaskSettings/>
                 </div>
             </div>
             <Card className="mb-4">

@@ -1,5 +1,5 @@
 import { StepType, TaskRunType, TaskType } from "@/types/Task";
-import { atom, selector } from "recoil";
+import { atom, atomFamily, selector } from "recoil";
 
 export const TasksAtom = atom<TaskType[]>({
     key: 'tasks',
@@ -13,17 +13,17 @@ export const TaskAtom = atom<TaskType>({
     }
 })
 
-export const StepsAtom = atom<StepType[]>({
+export const StepsAtom = atomFamily<StepType[], string>({
     key: 'steps',
     default: []
 })
 
-export const StepAtom = atom<StepType>({
+export const StepAtom = atomFamily<StepType, string>({
     key: 'step',
     default: { name: '', image: 'ubuntu', script: 'echo "Hello, World!"' }
 })
 
-export const TaskRunsAtom = atom<TaskRunType[]>({
+export const TaskRunsAtom = atomFamily<TaskRunType[], string>({
     key: 'taskRuns',
     default: []
 })

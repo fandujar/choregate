@@ -23,9 +23,9 @@ type StepAddProps = {
   
 export const StepAdd = (props: StepAddProps) => {
 const { taskID } = props;
-const [steps, setSteps] = useRecoilState<StepType[]>(StepsAtom);
+const [steps, setSteps] = useRecoilState<StepType[]>(StepsAtom(taskID));
 const [,setUpdate] = useRecoilState(StepsUpdateAtom)
-const [step, setStep] = useRecoilState<StepType>(StepAtom);
+const [step, setStep] = useRecoilState<StepType>(StepAtom(`${taskID}--1`));
 
 useEffect(() => {
     const response = getSteps(taskID);
@@ -35,7 +35,7 @@ useEffect(() => {
     setUpdate(false);
 }, [setUpdate, taskID, setSteps]);
 
-const handleStepAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
+const handleStepAdd = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     const data = [...steps,{
@@ -50,8 +50,6 @@ const handleStepAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
         console.log(err)
         toast.error(`${err.message}: ${err.response.data}`)
     })
-
-    setStep({name: "", image: "", script: ""})
 }
 
 return (

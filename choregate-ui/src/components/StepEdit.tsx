@@ -4,13 +4,12 @@ import { useEffect } from "react";
 import { useRecoilState } from "recoil";
 import { SquarePen } from "lucide-react";
 
-import { Dialog, DialogContent, DialogTrigger, DialogFooter, DialogHeader } from "./ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogFooter, DialogHeader, DialogClose, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { StepsUpdateAtom } from "@/atoms/Update";
-import { DialogClose } from "@radix-ui/react-dialog";
 import { toast } from "sonner";
 
 type StepEditProps = {
@@ -20,8 +19,8 @@ type StepEditProps = {
   
   export const StepEdit = (props: StepEditProps) => {
     const { taskID, stepIndex } = props;
-    const [step, setStep] = useRecoilState(StepAtom);
-    const [steps, setSteps] = useRecoilState(StepsAtom);
+    const [step, setStep] = useRecoilState(StepAtom(`${taskID}-${stepIndex}`));
+    const [steps, setSteps] = useRecoilState(StepsAtom(taskID));
     const [, setUpdate] = useRecoilState(StepsUpdateAtom)
   
     useEffect(() => {
@@ -55,7 +54,7 @@ type StepEditProps = {
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            Edit Step
+            <DialogTitle>Edit Step</DialogTitle>
           </DialogHeader>
           <div>
             <Label htmlFor="name" className="text-right">
