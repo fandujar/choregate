@@ -3,10 +3,10 @@ import { getTaskRuns } from '@/services/taskApi'
 import { Card, CardContent } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 import { useRecoilState } from 'recoil';
-import { TaskRunsUpdateAtom } from '@/atoms/Update';
 import { TaskRunsAtom } from '@/atoms/Tasks';
 import { TaskRunType } from '@/types/Task';
 import { TaskRunLogs } from './TaskRunLogs';
+import { useQuery } from 'react-query';
 
 
 type TaskRunListProps = {
@@ -16,15 +16,18 @@ type TaskRunListProps = {
 export function TaskRuns(props: TaskRunListProps) {
     const { taskID } = props
     const [taskRuns, setTaskRuns] = useRecoilState<TaskRunType[]>(TaskRunsAtom(taskID))
-    const [update, setUpdate] = useRecoilState(TaskRunsUpdateAtom)
+
+    const {data, isLoading} = useQuery('taskRuns', () => getTaskRuns(taskID))
 
     useEffect(() => {
-        const response = getTaskRuns(taskID)
-        response.then((tasksRuns) => {
-            setTaskRuns(tasksRuns)
-        })
-        setUpdate(false)
-    }, [update])
+        if (data) {
+            setTaskRuns(data)
+        }
+    }, [data])
+
+    if (isLoading) {
+        return <div>Loading...</div>
+    }
 
     return (
         <div className="space-y-4">

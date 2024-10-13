@@ -7,19 +7,24 @@ import { useRecoilState } from 'recoil'
 import { TasksAtom } from '@/atoms/Tasks'
 import { TasksUpdateAtom } from '@/atoms/Update'
 import { TaskCreate } from './TaskCreate'
+import { useQuery } from 'react-query'
 
 export function Tasks() {
     const [tasks, setTasks] = useRecoilState(TasksAtom)
-    const [update, setUpdate] = useRecoilState(TasksUpdateAtom)
+    // const [update, setUpdate] = useRecoilState(TasksUpdateAtom)
     const navigate = useNavigate()
 
+    const {data, isLoading} = useQuery('tasks', getTasks)
+
     useEffect(() => {
-        const tasks = getTasks()
-        tasks.then((tasks) => {
-            setTasks(tasks)
-        })
-        setUpdate(false)
-    }, [update])
+        if (data) {
+            setTasks(data)
+        }
+    }, [data])
+
+    if (isLoading) {
+        return <div>Loading...</div>
+    }
 
     return (
         <div className='flex-auto h-full m-5'>

@@ -9,8 +9,8 @@ import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-import { StepsUpdateAtom } from "@/atoms/Update";
 import { toast } from "sonner";
+import { useQuery } from "react-query";
 
 type StepEditProps = {
     taskID: string;
@@ -21,24 +21,29 @@ type StepEditProps = {
     const { taskID, stepIndex } = props;
     const [step, setStep] = useRecoilState(StepAtom(`${taskID}-${stepIndex}`));
     const [steps, setSteps] = useRecoilState(StepsAtom(taskID));
-    const [, setUpdate] = useRecoilState(StepsUpdateAtom)
-  
+    const { data, isLoading, refetch } = useQuery('steps', () => getSteps(taskID), {staleTime: 1000})
+
     useEffect(() => {
-      const response = getSteps(taskID);
-      response.then((steps) => {
-        setSteps(steps);
-      });
-    }, [])
-  
+        if (data) {
+            setSteps(data)
+        }
+    }, [data])
+
     useEffect(() => {
-      setStep(steps[stepIndex])
-    }, [])
+        if (steps) {
+            setStep(steps[stepIndex])
+        }
+    }, [steps])
+
+    if (isLoading) {
+        return <div>Loading...</div>
+    }
   
     const handleEditStep = (index: number) => {
         const data = [...steps]
         data[index] = step
         updateSteps(taskID, data).then(() => {
-          setUpdate(true)
+          refetch()
         }).catch((err) => {
           console.log(err)
           toast.error(`${err.message}: ${err.response.data}`)

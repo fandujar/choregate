@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useRecoilState } from "recoil";
 
-import { StepsUpdateAtom } from "@/atoms/Update";
 import { StepsAtom, StepAtom } from "@/atoms/Tasks";
 
 import { Dialog, DialogClose, DialogTrigger, DialogHeader, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
@@ -15,6 +14,7 @@ import { updateSteps } from "@/services/taskApi";
 
 import { StepType } from "@/types/Task";
 import { toast } from "sonner";
+import { useQuery } from "react-query";
 
 type StepAddProps = {
     taskID: string;
@@ -24,16 +24,18 @@ type StepAddProps = {
 export const StepAdd = (props: StepAddProps) => {
 const { taskID } = props;
 const [steps, setSteps] = useRecoilState<StepType[]>(StepsAtom(taskID));
-const [,setUpdate] = useRecoilState(StepsUpdateAtom)
 const [step, setStep] = useRecoilState<StepType>(StepAtom(`${taskID}--1`));
+const { data, isLoading, refetch } = useQuery('steps', () => getSteps(taskID), {staleTime: 1000});
 
 useEffect(() => {
-    const response = getSteps(taskID);
-    response.then((steps) => {
-        setSteps(steps);
-    });
-    setUpdate(false);
-}, [setUpdate, taskID, setSteps]);
+    if (data) {
+        setSteps(data);
+    }
+}, [data]);
+
+if (isLoading) {
+    return <div>Loading...</div>
+}
 
 const handleStepAdd = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -45,7 +47,7 @@ const handleStepAdd = (e: React.FormEvent<HTMLFormElement>) => {
     }]
 
     updateSteps(taskID, data).then(() => {
-        setUpdate(true)
+        refetch()
     }).catch((err) => {
         console.log(err)
         toast.error(`${err.message}: ${err.response.data}`)

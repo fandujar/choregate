@@ -3,11 +3,11 @@ import { Card, CardContent } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 import { getSteps } from "@/services/taskApi"
 import { useRecoilState } from "recoil";
-import { StepsUpdateAtom } from "@/atoms/Update";
 import { StepsAtom } from "@/atoms/Tasks";
 import { StepType } from "@/types/Task";
 import { StepEdit } from "./StepEdit";
 import { StepDelete } from "./StepDelete";
+import { useQuery } from "react-query";
 
 type StepsProps = {
   taskID: string;
@@ -16,15 +16,17 @@ type StepsProps = {
 export const Steps = (props: StepsProps) => {
     const { taskID } = props;
     const [steps, setSteps] = useRecoilState<StepType[]>(StepsAtom(taskID));
-    const [update, setUpdate] = useRecoilState(StepsUpdateAtom)
+    const { data, isLoading } = useQuery('steps', () => getSteps(taskID), {staleTime: 1000});
 
     useEffect(() => {
-      const steps = getSteps(taskID);
-      steps.then((steps) => {
-        setSteps(steps);
-      });
-      setUpdate(false);
-    }, [update]);
+        if (data) {
+            setSteps(data);
+        }
+    }, [data]);
+
+    if (isLoading) {
+        return <div>Loading...</div>
+    }
 
     return (
       <div className="space-y-4">

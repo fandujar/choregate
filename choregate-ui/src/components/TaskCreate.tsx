@@ -1,27 +1,25 @@
-import { createTask } from "@/services/taskApi"
-import { useRecoilState } from "recoil";
+import { createTask, getTasks } from "@/services/taskApi"
 import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import { TasksUpdateAtom } from "@/atoms/Update";
 import { toast } from "sonner";
 import { useState } from "react";
 import { TaskType } from "@/types/Task";
+import { useQuery } from "react-query";
 
 export const TaskCreate = () => {
     const [task, setTask] = useState<TaskType>({name: ""})
-    const [, setUpdate] = useRecoilState(TasksUpdateAtom)
+    const {refetch} = useQuery('tasks', getTasks, {staleTime: 1000})
 
     const handleTaskCreate = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         const response  = createTask(task)
         response.then(() => {
-            setUpdate(true)
+            refetch()
         }).catch((err) => {
             console.log(err)
             toast.error(`${err.message}: ${err.response.data}`)
-            setUpdate(true)
         })
     }
 

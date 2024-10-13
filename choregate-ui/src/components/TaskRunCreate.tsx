@@ -1,8 +1,7 @@
-import { TaskRunsUpdateAtom } from "@/atoms/Update"
-import { runTask } from "@/services/taskApi"
-import { useRecoilState } from "recoil"
+import { getTaskRuns, runTask } from "@/services/taskApi"
 import { Button } from "./ui/button"
 import { toast } from "sonner"
+import { useQuery } from "react-query"
 
 type TaskRunCreateProps = {
     taskID: string
@@ -10,16 +9,15 @@ type TaskRunCreateProps = {
 
 export const TaskRunCreate = (props: TaskRunCreateProps) => {
     const { taskID } = props
-    const [, setUpdate] = useRecoilState(TaskRunsUpdateAtom)
+    const { refetch } = useQuery('taskRuns', () => getTaskRuns(taskID), {staleTime: 1000})
 
     const handleTaskRunCreate = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault()
         runTask(taskID).then(() => {
-            setUpdate(true)
+            refetch()
         }).catch((err) => {
             console.log(err)
             toast.error(`${err.message}: ${err.response.data}`)
-            setUpdate(true)
         })
     }
 

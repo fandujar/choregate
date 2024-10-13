@@ -9,7 +9,7 @@ export const Header = () => {
     // const [user, _] = useRecoilState(UserAtom);
     const { logout } = useAuth();
 
-    const handleLogout = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleLogout = async (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         logout();    
     }
