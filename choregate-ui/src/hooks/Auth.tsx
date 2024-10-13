@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 });
                 
                 response.then((res) => {
-                    if (res.status === 401) {
+                    if (res.status !== 200) {
                         localStorage.removeItem('jwt');
                         navigate('/login');
                     }}).catch((error) => {
